@@ -1,2 +1,2 @@
-# beanreact-permission
+# @beanreact/permission
 react component permission 
