@@ -1,11 +1,11 @@
 # @beanreact/permission
-Use for control react component permission
+Use for control react component permission.
 
 ## Install
 npm install -S @beanreact/permission
 
 ## Usage
-Set user's permissions
+Set user's permissions.
 ```js
 import { setOwnPermissions } from '@beanreact/permission';
 
@@ -19,7 +19,7 @@ setOwnPermissions([1, 2, 3]);
 // or
 setOwnPermissions(['a,b,c']);
 ```
-Config element's permissions
+Set element's permissions.
 ```js
 import { permission } from '@beanreact/permission';
 
@@ -29,6 +29,7 @@ class MyComponent extends Component {
     render() {
         return (
             <div>
+                {/* use "data-permission" attribute for dom element */}
                 <div data-permission="1">
                     <h1>MyComponent</h1>
                     <p data-permission="2,3">
@@ -36,6 +37,7 @@ class MyComponent extends Component {
                         <span>span1</span>
                     </p>
                 </div>
+                {/* use "permission" attribute for component element */}
                 <SubComponent1 permission="1" />
                 <SubComponent2 permission={2} />
                 <SubComponent3 permission="3,4,5" />
