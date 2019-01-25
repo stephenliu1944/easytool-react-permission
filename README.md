@@ -2,7 +2,9 @@
 Use for react element permission.
 
 ## Install
+```
 npm install -S @beanreact/permission
+```
 
 ## Usage
 Set user's permissions first.
