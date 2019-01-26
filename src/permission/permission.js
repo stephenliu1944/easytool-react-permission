@@ -1,4 +1,5 @@
 import React, { Children } from 'react';
+import { Status } from 'constants/enum';
 import { isArray, isString, isNumber, isEmpty, trim } from 'utils/common';
 
 var _ownPermissions = [];
@@ -114,13 +115,28 @@ export function setOwnPermissions(permissions) {
     _ownPermissions = formatPermissionValue(permissions);
 }
 
-export function permission(options = {}) {
+export function permission(permissions, callback) {
 
     return function(WrappedComponent) {
+
         return class extends WrappedComponent {
+
             render() {
-                var element = super.render();
-                var newElement = filterPermission(element);
+                var status = validatePermission(permissions) ? Status.AUTHORIZED : Status.DENIED;
+                var element = callback && callback(status);
+                var newElement = null;
+
+                switch (status) {
+                    case Status.AUTHORIZED:
+                        var originElement = super.render();
+                        newElement = filterPermission(originElement);
+                        break;
+                    case Status.DENIED:
+                        if (React.isValidElement(element)) {
+                            newElement = element;
+                        }
+                        break;
+                }
 
                 return newElement;
             }

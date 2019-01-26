@@ -49,4 +49,49 @@ class MyComponent extends Component {
         );
     }
 }
+
+render(
+    <MyComponent />,
+    document.getElementById('app')
+);
+```
+Set class's permissions.
+```js
+import { permission } from '@beanreact/permission';
+
+@permission([1,2,3], (status) => {
+    if (status === 'authorized') {
+        // do something
+    } else if (status === 'denied') {
+        // do something like:
+        location.href = 'xxxx/404';
+        // or
+        return <h1>Permissions Denied</h1>;     // use a valid element replace the original(only work in denied status).
+    }
+})
+class MyComponent extends Component {
+
+    render() {
+        return (
+            <div>
+                .....
+            </div>
+        );
+    }
+}
+
+render(
+    <MyComponent />,
+    document.getElementById('app')
+);
+```
+
+## API
+```js
+/**
+ * @desc
+ * @param { number | string | array } permissions set component's permissions.
+ * @param { function } callback check class's permissions callback, receive a status.
+ */
+@permission(permissions, callback)
 ```
