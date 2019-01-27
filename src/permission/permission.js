@@ -39,7 +39,7 @@ function formatPermissionValue(value) {
     return permissions;
 }
 
-function validatePermission(permissions) {
+function checkPermission(permissions) {
     if (isEmpty(permissions)) {
         return true;
     }
@@ -50,6 +50,7 @@ function validatePermission(permissions) {
 
     var requiredPermissions = formatPermissionValue(permissions);
 
+    // TODO: 可自定义校验规则
     for (let i = 0; i < requiredPermissions.length; i++) {
         let requiredPermission = requiredPermissions[i];
 
@@ -66,75 +67,72 @@ function validatePermission(permissions) {
     return true;
 }
 
-function checkPermission(element) {
-    // TODO: 可配置权限属性
-    var requiredPermissions = element.props['data-permission'] || element.props['permission'];
-    var allow = validatePermission(requiredPermissions);
+function handleDeniedHook(permission, element, onDenied) {
+    var newElement = onDenied && onDenied(permission, element);
 
-    return allow;
+    if (React.isValidElement(newElement)) {
+        return newElement;
+    }
+
+    return;
 }
 
-function filterPermission(element) {
+// 递归遍历 Virtual Tree
+function filterPermission(element, onDenied) {
     if (!element) {
         return;
     }
 
-    if (isReactDOMElement(element)) {
-        if (checkPermission(element)) {
-            let newChildren;
+    // 只处理 DOMElement 和 ComponentElement
+    if (isReactDOMElement(element) || isReactComponentElement(element)) {
+        var permission = element.props['data-permission'] || element.props['permission'];
+
+        if (checkPermission(permission)) {
             let { children } = element.props;
+            let newChildren;
 
             if (children) {
                 newChildren = [];
                 Children.forEach(children, (child) => {
-                    let checkedChild = filterPermission(child);
+                    let checkedChild = filterPermission(child, onDenied);
                     checkedChild && newChildren.push(checkedChild);
                 });
             }
-    
+            // 返回权限过滤后的元素
             return React.cloneElement(element, null, newChildren);
-        // 没权限, 被忽略掉
         } 
-        return;
-         
-    } else if (isReactComponentElement(element)) {
-        // 组件类型判断不了子元素
-        if (checkPermission(element)) {
-            return element;
-        // 没权限, 被忽略掉
-        } 
-        return;
         
-    // 其他元素类型暂不处理
+        return handleDeniedHook(permission, element, onDenied);
     } 
+    // 其他元素类型暂不处理
     return element;
-
 }
 
 export function setOwnPermissions(permissions) {
     _ownPermissions = formatPermissionValue(permissions);
 }
 
-export function permission(permissions, callback) {
+export function permission(permissions, onDenied) {
+    if (typeof permissions === 'function' && arguments.length === 1) {
+        onDenied = permissions;
+        permissions = null;
+    }
 
     return function(WrappedComponent) {
 
         return class extends WrappedComponent {
 
             render() {
-                var status = validatePermission(permissions) ? Status.AUTHORIZED : Status.DENIED;
-                var element = callback && callback(status);
+                var status = checkPermission(permissions) ? Status.AUTHORIZED : Status.DENIED;
                 var newElement = null;
 
                 switch (status) {
                     case Status.AUTHORIZED:
-                        var originElement = super.render();
-                        newElement = filterPermission(originElement);
+                        var originElement = super.render();                        
+                        newElement = filterPermission(originElement, onDenied);
                         break;
                     case Status.DENIED:
-                        if (React.isValidElement(element)) {
-                            newElement = element;
-                        }
+                        newElement = handleDeniedHook(permissions, this, onDenied);
                         break;
                 }
 

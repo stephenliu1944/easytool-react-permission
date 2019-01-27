@@ -4,7 +4,10 @@ import { permission, setOwnPermissions } from './permission';
 
 setOwnPermissions('1,2');
 
-@permission()
+@permission((num, el) => {
+    console.log(num, el);
+    return <span>33333</span>;
+})
 class MyComponent extends Component {
 
     render() {
@@ -18,7 +21,10 @@ class MyComponent extends Component {
                     </p>
                 </div>
                 <SubComponent1 permission={2} />
-                <SubComponent2 />
+                <SubComponent2>
+                    <div data-permission="1">sc2</div>
+                    <SubComponent1 permission={3} />
+                </SubComponent2>
             </div>
         );
     }
@@ -41,12 +47,11 @@ class SubComponent1 extends Component {
     }
 } 
 
-function SubComponent2() {
+function SubComponent2(props) {
     return (
         <div>
-            SubComponent2
-            <h1>SubComponent2.h1</h1>
-            <SubComponent1 />
+            <h1>SubComponent2</h1>
+            { props.children }
         </div>
     );
 }
