@@ -7,9 +7,8 @@ npm install -S @beanreact/permission
 ```
 
 ## Usage
-Example
-```js
-import { setOwnPermissions } from '@beanreact/permission';
+```jsx
+import { setOwnPermissions, permission } from '@beanreact/permission';
 // set user's permissions first.
 setOwnPermissions(['a', 'b', 'c']);
 
@@ -35,7 +34,7 @@ render(
 );
 ```
 Use setOwnPermissions method.
-```js
+```jsx
 import { setOwnPermissions } from '@beanreact/permission';
 // number
 setOwnPermissions(1);
@@ -56,7 +55,7 @@ var promise = new Promise((resolve, reject) => {
 setOwnPermissions(promise);
 ```
 Set element's permissions.
-```js
+```jsx
 import { permission } from '@beanreact/permission';
 
 @permission()
@@ -86,7 +85,7 @@ class MyComponent extends Component {
 }
 ```
 Set Component's permissions.
-```js
+```jsx
 import { permission } from '@beanreact/permission';
 
 @permission([1,2,3])
@@ -102,7 +101,7 @@ class MyComponent extends Component {
 }
 ```
 Handle denied hook.
-```js
+```jsx
 import { permission } from '@beanreact/permission';
 
 @permission((requiredPermission, deniedElement) => {
