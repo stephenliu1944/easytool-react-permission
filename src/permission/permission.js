@@ -1,8 +1,14 @@
 import React, { Children } from 'react';
 import { Status } from 'constants/enum';
+import SetPermissionException from 'exceptions/SetPermissionException';
 import { isArray, isString, isNumber, isEmpty, trim } from 'utils/common';
 
 var _ownPermissions = [];
+var _updateComponentQueue = [];
+    
+function isPromise(obj) {
+    return typeof obj === 'object' && obj.then && obj.catch && obj.finally;
+}
 
 function isReactDOMElement(node) {
     return node && typeof node.type === 'string';
@@ -44,7 +50,7 @@ function checkPermission(permissions) {
         return true;
     }
 
-    if (isEmpty(_ownPermissions)) {
+    if (isEmpty(_ownPermissions) || isPromise(_ownPermissions)) {
         return false;
     }
 
@@ -109,7 +115,21 @@ function filterPermission(element, onDenied) {
 }
 
 export function setOwnPermissions(permissions) {
-    _ownPermissions = formatPermissionValue(permissions);
+    // lazy load
+    if (isPromise(permissions)) {
+        _ownPermissions = permissions;
+        _ownPermissions.then(function(_permissions) {
+            _ownPermissions = formatPermissionValue(_permissions);
+            // update components 
+            _updateComponentQueue.forEach(component => component.forceUpdate());
+        }, function(error) {
+            _ownPermissions = [];
+            _updateComponentQueue = [];
+            throw new SetPermissionException(error);
+        });
+    } else {
+        _ownPermissions = formatPermissionValue(permissions);
+    }
 }
 
 export function permission(permissions, onDenied) {
@@ -121,10 +141,18 @@ export function permission(permissions, onDenied) {
     return function(WrappedComponent) {
 
         return class extends WrappedComponent {
+            
+            componentDidMount() {
+                super.componentDidMount && super.componentDidMount();
+                // 如果是 promise 则加入更新队列
+                if (isPromise(_ownPermissions)) {
+                    _updateComponentQueue.push(this);
+                }
+            }
 
             render() {
-                var status = checkPermission(permissions) ? Status.AUTHORIZED : Status.DENIED;
                 var newElement = null;
+                var status = checkPermission(permissions) ? Status.AUTHORIZED : Status.DENIED;
 
                 switch (status) {
                     case Status.AUTHORIZED:

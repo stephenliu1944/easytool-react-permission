@@ -7,19 +7,53 @@ npm install -S @beanreact/permission
 ```
 
 ## Usage
-Set user's permissions first.
+Example
 ```js
 import { setOwnPermissions } from '@beanreact/permission';
-
-setOwnPermissions(1);
-// or
-setOwnPermissions('1');
-// or
-setOwnPermissions('1, 2, 3');
-// or
-setOwnPermissions([1, 2, 3]);
-// or
+// set user's permissions first.
 setOwnPermissions(['a', 'b', 'c']);
+
+// add annotation
+@permission()
+class MyComponent extends Component {
+
+    render() {
+        return (
+            <div>
+                {/* set dom element permission */}
+                <div data-permission="a">MyComponent</div>
+                {/* set component element permissions */}
+                <SubComponent permission={['b', 'c']} />
+            </div>
+        );
+    }
+}
+
+render(
+    <MyComponent />,
+    document.getElementById('app')
+);
+```
+Use setOwnPermissions method.
+```js
+import { setOwnPermissions } from '@beanreact/permission';
+// number
+setOwnPermissions(1);
+// string
+setOwnPermissions('1');
+// string with dot
+setOwnPermissions('1, 2, 3');
+// array
+setOwnPermissions(['a', 'b', 'c']);
+// even promise
+var promise = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        resolve(['a', 'b', 'c']);
+        // or
+        reject('error');
+    }, 5000);
+});
+setOwnPermissions(promise);
 ```
 Set element's permissions.
 ```js
@@ -50,11 +84,6 @@ class MyComponent extends Component {
         );
     }
 }
-
-render(
-    <MyComponent />,
-    document.getElementById('app')
-);
 ```
 Set Component's permissions.
 ```js
@@ -71,11 +100,6 @@ class MyComponent extends Component {
         );
     }
 }
-
-render(
-    <MyComponent />,
-    document.getElementById('app')
-);
 ```
 Handle denied hook.
 ```js
@@ -96,7 +120,7 @@ import { permission } from '@beanreact/permission';
         }
     }
 })
-// or
+// or component's permissions with hook
 @permission([1,2,3], (permission, element) => {
     // do something...
 })
@@ -110,18 +134,13 @@ class MyComponent extends Component {
         );
     }
 }
-
-render(
-    <MyComponent />,
-    document.getElementById('app')
-);
 ```
 
 ## API
 ```js
 /**
  * @desc set global permissions for user own.
- * @param { number | string | array } permissions set user's permissions.
+ * @param { number | string | array | promise } permissions set user's permissions.
  */
 setOwnPermissions(permissions)
 

@@ -2,11 +2,18 @@ import React, { Component } from 'react';
 import { render } from 'react-dom';
 import { permission, setOwnPermissions } from './permission';
 
-setOwnPermissions('1,2');
+var promise = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        // reject('xxxxx');
+        resolve('1,2');
+    }, 5000);
+});
+
+setOwnPermissions(promise);
 
 @permission((num, el) => {
     console.log(num, el);
-    return <span>33333</span>;
+    // return <span>deny</span>;
 })
 class MyComponent extends Component {
 
@@ -32,6 +39,10 @@ class MyComponent extends Component {
 
 @permission()
 class SubComponent1 extends Component {
+    
+    componentDidMount() {
+        console.log('-------------SubComponent1');
+    }
 
     render() {
         return (

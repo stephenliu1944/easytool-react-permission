@@ -36,9 +36,9 @@ export default function(fileName) {
                 targets: `${BUILD_PATH}/${ fileName || '*' }`
             }),
             alias({
-                config: 'src/_config',
-                constants: 'src/_constants',
-                utils: 'src/_utils'
+                constants: 'src/constants',
+                exceptions: 'src/exceptions',
+                utils: 'src/utils'
             }),
             babel({
                 exclude: 'node_modules/**' // only transpile our source code
