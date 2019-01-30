@@ -33,7 +33,7 @@ render(
     document.getElementById('app')
 );
 ```
-Use setOwnPermissions method.
+setOwnPermissions() support number, string, array or promise argument.
 ```jsx
 import { setOwnPermissions } from '@beanreact/permission';
 // number
