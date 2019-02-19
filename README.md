@@ -33,6 +33,7 @@ render(
     document.getElementById('app')
 );
 ```
+Set user's permissions.  
 setOwnPermissions() support number, string, array or promise argument.
 ```jsx
 import { setOwnPermissions } from '@beanreact/permission';
@@ -54,7 +55,25 @@ var promise = new Promise((resolve, reject) => {
 });
 setOwnPermissions(promise);
 ```
-Set element's permissions.
+
+Set permissions of component.
+```jsx
+import { permission } from '@beanreact/permission';
+
+@permission([1,2,3])
+class MyComponent extends Component {
+
+    render() {
+        return (
+            <div>
+                .....
+            </div>
+        );
+    }
+}
+```
+
+Set permissions of component children.
 ```jsx
 import { permission } from '@beanreact/permission';
 
@@ -84,22 +103,7 @@ class MyComponent extends Component {
     }
 }
 ```
-Set Component's permissions.
-```jsx
-import { permission } from '@beanreact/permission';
 
-@permission([1,2,3])
-class MyComponent extends Component {
-
-    render() {
-        return (
-            <div>
-                .....
-            </div>
-        );
-    }
-}
-```
 Handle denied hook.
 ```jsx
 import { permission } from '@beanreact/permission';
