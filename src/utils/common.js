@@ -82,6 +82,10 @@ export function isNotBlank(obj) {
     return !isBlank(obj);
 }
 
+export function isPromise(obj) {
+    return typeof obj === 'object' && obj.then && obj.catch && obj.finally;
+}
+
 /**
  * @desc 函数节流
  * @url http://underscorejs.org/#throttle

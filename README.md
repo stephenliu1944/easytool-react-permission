@@ -8,11 +8,11 @@ npm install -S @beanreact/permission
 
 ## Usage
 ```jsx
-import { setOwnPermissions, permission } from '@beanreact/permission';
+import permission, { setUserPermissions } from '@beanreact/permission';
 // set user's permissions first.
-setOwnPermissions(['a', 'b', 'c']);
+setUserPermissions(['a', 'b', 'c']);
 
-// add annotation
+// add annotation on Component
 @permission()
 class MyComponent extends Component {
 
@@ -33,17 +33,19 @@ render(
     document.getElementById('app')
 );
 ```
-setOwnPermissions() support number, string, array or promise argument.
+
+### setUserPermissions
+Support number, string, array or promise argument.
 ```jsx
-import { setOwnPermissions } from '@beanreact/permission';
+import { setUserPermissions } from '@beanreact/permission';
 // number
-setOwnPermissions(1);
+setUserPermissions(1);
 // string
-setOwnPermissions('1');
+setUserPermissions('1');
 // string with dot
-setOwnPermissions('1, 2, 3');
+setUserPermissions('1, 2, 3');
 // array
-setOwnPermissions(['a', 'b', 'c']);
+setUserPermissions(['a', 'b', 'c']);
 // even promise
 var promise = new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -52,11 +54,12 @@ var promise = new Promise((resolve, reject) => {
         reject('error');
     }, 5000);
 });
-setOwnPermissions(promise);
+setUserPermissions(promise);
 ```
-Set element's permissions.
+
+### Set Element's permissions.
 ```jsx
-import { permission } from '@beanreact/permission';
+import permission from '@beanreact/permission';
 
 @permission()
 class MyComponent extends Component {
@@ -84,9 +87,10 @@ class MyComponent extends Component {
     }
 }
 ```
-Set Component's permissions.
+
+### Set Component's permissions.
 ```jsx
-import { permission } from '@beanreact/permission';
+import permission from '@beanreact/permission';
 
 @permission([1,2,3])
 class MyComponent extends Component {
@@ -100,23 +104,22 @@ class MyComponent extends Component {
     }
 }
 ```
-Handle denied hook.
+
+### Handle denied hook.
 ```jsx
-import { permission } from '@beanreact/permission';
+import permission from '@beanreact/permission';
 
 @permission((requiredPermission, deniedElement) => {
-    /**
-     * Demo
-     */
-    if (requiredPermission === 'need_login') {
-        location.href = 'xxxx/login';
-    } else if (requiredPermission === 2) {
-        return <h1>Permissions Denied</h1>;             // use a valid element replace the denied element.
-    } else if (requiredPermission === 3) {
-        if (React.isValidElement(deniedElement)) {      // check deniedElement type, sometimes deniedElement type is ReactComponent.
-            // rewrite deniedElement
-            return React.cloneElement(deniedElement, newProps, newChildren);
-        }
+    if (requiredPermission === 1) {                     
+        // need log in
+        location.href = 'http://www.xxxx.com/login';    
+    } else if (requiredPermission === 2) {              
+        // use a valid element replace the denied element.
+        return <h1>Permissions Denied</h1>;             
+    } else if (requiredPermission === 3) {              
+        // rewrite deniedElement
+        var { children, ...other } = deniedElement.props;
+        return React.cloneElement(deniedElement, Object.assign({}, other, { disable: true }), children);
     }
 })
 // or component's permissions with hook
@@ -135,18 +138,41 @@ class MyComponent extends Component {
 }
 ```
 
+### Set Default settings.
+```jsx
+import permission from '@beanreact/permission';
+
+permission.settings({
+    onDenied(requiredPermission, deniedElement) {
+        ...
+    },
+    comparePermission(requiredPermissions, userPermissions) {
+        ...
+        return true/false;
+    }
+});
+```
+
 ## API
 ```js
 /**
  * @desc set global permissions for user own.
  * @param { number | string | array | promise } permissions set user's permissions.
  */
-setOwnPermissions(permissions)
+setUserPermissions(permissions)
 
 /**
  * @desc
  * @param { number | string | array } permissions set component's permissions.
  * @param { function } onDenied when permission denied occur, this method will be invoked everytime, receive a required permission and denied element, could return a replace element.
  */
-@permission(permissions, onDenied)
+permission(permissions, onDenied)
+
+/**
+ * @desc
+ * @param { object } options set default options.
+ * @param { function } options.comparePermission custom compare function, receive(requiredPermissions, userPermissions). return true means authorized, false means denied.
+ * @param { function } options.onDenied custom global onDenied, recieve(requiredPermissions, deniedElement).
+ */
+permission.settings(options)
 ```

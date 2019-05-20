@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { render } from 'react-dom';
-import { permission, setOwnPermissions } from './permission';
+import permission, { setUserPermissions } from './index';
 
 var promise = new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -9,11 +9,12 @@ var promise = new Promise((resolve, reject) => {
     }, 5000);
 });
 
-setOwnPermissions(promise);
+setUserPermissions(promise);
 
 @permission((num, el) => {
-    console.log(num, el);
-    // return <span>deny</span>;
+    console.log('denied: ', num, el);
+    var { children, ...other } = el.props;
+    return React.cloneElement(el, Object.assign({}, other, { disable: true }), children);
 })
 class MyComponent extends Component {
 
@@ -27,7 +28,7 @@ class MyComponent extends Component {
                         <span>span1</span>    
                     </p>
                 </div>
-                <SubComponent1 permission={2} />
+                <SubComponent1 permission={2} disable={false} />
                 <SubComponent2>
                     <div data-permission="1">sc2</div>
                     <SubComponent1 permission={3} />
@@ -48,11 +49,11 @@ class SubComponent1 extends Component {
         return (
             <div>
                 SubComponent1
-                    <h1 data-permission={[1,2,3]}>SubComponent1.h1</h1>
-                    <p>
+                <h1 data-permission={[1, 2, 3]}>SubComponent1.h1</h1>
+                <p>
                     SubComponent1.p1
-                        <span>SubComponent1.span1</span>    
-                    </p>
+                    <span>SubComponent1.disable: {this.props.disable ? 'DISABLE' : 'ENABLE' }</span>    
+                </p>
             </div>
         );
     }
@@ -62,6 +63,16 @@ function SubComponent2(props) {
     return (
         <div>
             <h1>SubComponent2</h1>
+            { props.children }
+        </div>
+    );
+}
+
+function SubComponent3(props) {
+    return (
+        <div>
+            <h1>SubComponent3</h1>
+            <p>deny</p>
             { props.children }
         </div>
     );
