@@ -34,8 +34,8 @@ render(
 );
 ```
 
-### setUserPermissions
-Support number, string, array or promise argument.
+### Set User's permissions.  
+setOwnPermissions() support number, string, array or promise argument.
 ```jsx
 import { setUserPermissions } from '@beanreact/permission';
 // number
