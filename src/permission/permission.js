@@ -74,7 +74,7 @@ function filterPermission(element, onDenied) {
 
     // 只处理 DOMElement 和 ComponentElement
     if (isReactDOMElement(element) || isReactComponentElement(element)) {
-        var permission = element.props['data-permission'] || element.props['permission'];
+        var permission = element.props['data-permission'] || element.props['data-permissions'] || element.props['permission'] || element.props['permissions'];
 
         if (checkPermission(permission)) {
             let { children } = element.props;
