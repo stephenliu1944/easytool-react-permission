@@ -9,6 +9,7 @@ var _userPermissions = [];
 var _updateComponentQueue = [];
 var _defaults = {
     onDenied: null,
+    transformData: null,
     comparePermission(requiredPermissions, userPermissions) {
         for (let i = 0; i < requiredPermissions.length; i++) {
             let requiredPermission = requiredPermissions[i];
@@ -39,6 +40,20 @@ function checkPermission(permissions) {
     var requiredPermissions = formatPermissionValue(permissions);
 
     return _defaults.comparePermission(requiredPermissions, _userPermissions);
+}
+
+// 接收到用户的权限数据后进行处理
+function handleUserPermissions(data) {
+    var _permissions;
+            
+    if (_defaults.transformData) {
+        _permissions = _defaults.transformData(data);
+    } else {
+        _permissions = data;
+    }
+    
+    // 加载完后 _userPermissions 由 Promise 转为真正的权限列表
+    return formatPermissionValue(_permissions);
 }
 
 function handleDeniedHook(permission, element, onDenied) {
@@ -80,30 +95,6 @@ function filterPermission(element, onDenied) {
     } 
     // 其他元素类型暂不处理
     return element;
-}
-
-export function setUserPermissions(permissions) {
-    // lazy load
-    if (isPromise(permissions)) {
-        _userPermissions = permissions;
-        _userPermissions.then(function(_permissions) {
-            // TODO: transform data
-            // 加载完后 _userPermissions 由 Promise 转为真正的权限列表
-            _userPermissions = formatPermissionValue(_permissions);
-            // update components 
-            _updateComponentQueue.forEach(component => component.forceUpdate());
-            // clean the Queue
-            setTimeout(() => {
-                _updateComponentQueue = [];
-            }, 0);
-        }, function(error) {
-            _userPermissions = [];
-            _updateComponentQueue = [];
-            throw new SetPermissionException(error);
-        });
-    } else {
-        _userPermissions = formatPermissionValue(permissions);
-    }
 }
 
 export function permission(permissions, onDenied) {
@@ -164,4 +155,31 @@ export function permission(permissions, onDenied) {
 // 设置默认配置
 permission.settings = function(options) {
     Object.assign(_defaults, options); 
+};
+
+// 设置用户权限
+permission.setUserPermissions = function(permissions) {
+    // lazy load
+    if (isPromise(permissions)) {
+        _userPermissions = permissions;
+        _userPermissions.then(function(data) {
+            // 注意此处 _userPermissions 从 Promise 转为了真正的权限数据
+            _userPermissions = handleUserPermissions(data);
+
+            var component;
+            while (component = _updateComponentQueue.shift()) {
+                component.forceUpdate();
+            }
+        }, function(error) {
+            _userPermissions = [];
+            _updateComponentQueue = [];
+            throw new SetPermissionException(error);
+        });
+    } else {
+        _userPermissions = handleUserPermissions(permissions);
+    }
+};
+
+permission.getUserPermissions = function() {
+    return _userPermissions;
 };

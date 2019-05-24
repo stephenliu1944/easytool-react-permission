@@ -2,10 +2,16 @@ import React, { Component } from 'react';
 import { render } from 'react-dom';
 import permission, { setUserPermissions } from './index';
 
+permission.settings({
+    transformData(data) {
+        return data;
+    }
+});
+
 var promise = new Promise((resolve, reject) => {
     setTimeout(() => {
         // reject('xxxxx');
-        resolve('1,2');
+        resolve([1, 2, 'A']);
     }, 5000);
 });
 
@@ -13,20 +19,41 @@ setUserPermissions(promise);
 
 @permission((num, el) => {
     console.log('denied: ', num, el);
-    var { children, ...other } = el.props;
-    return React.cloneElement(el, Object.assign({}, other, { disable: true }), children);
+    // var { children, ...other } = el.props;
+    // return React.cloneElement(el, Object.assign({}, other, { disable: true }), children);
 })
 class MyComponent extends Component {
+
+    state = {
+        data: []
+    }
+
+    componentDidMount() {
+        setTimeout(() => {
+            this.setState({
+                data: ['A', 'B', 'C']
+            }, () => {
+                // this.forceUpdate();
+            });
+        }, 3000);
+
+        setTimeout(() => {
+            console.log('permission.getUserPermissions():', permission.getUserPermissions());
+        }, 6000);
+    }
+
+    renderData(data) {
+        return data.map((data, index) => {
+            return <p permission={data}>Function Map {data}</p>;
+        });
+    }
 
     render() {
         return (
             <div>
                 <div data-permission={['1']}>
                     <h1>MyComponent</h1>
-                    <p>
-                        p1
-                        <span>span1</span>    
-                    </p>
+                    { this.renderData(this.state.data) }
                 </div>
                 <SubComponent1 permission={2} disable={false} />
                 <SubComponent2>

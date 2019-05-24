@@ -12,7 +12,6 @@
         "commonjs": true
     },
     "rules": {
-        "no-cond-assign": "error",
         "no-constant-condition": "error",
         "no-dupe-args": "error",
         "no-dupe-keys": "error",
