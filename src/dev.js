@@ -12,10 +12,10 @@ var promise = new Promise((resolve, reject) => {
     setTimeout(() => {
         // reject('xxxxx');
         resolve([1, 2, 'A']);
-    }, 5000);
+    }, 2000);
 });
 
-setUserPermissions(promise);
+permission.setUserPermissionsAsync(promise);
 
 @permission((num, el) => {
     console.log('denied: ', num, el);

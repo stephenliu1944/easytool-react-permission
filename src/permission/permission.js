@@ -5,12 +5,13 @@ import { isEmpty, isPromise, trim } from 'utils/common';
 import { isReactDOMElement, isReactComponentElement, isReactText, isReactEmpty } from 'utils/react';
 import { formatPermissionValue } from 'utils/format';
 
-var _userPermissions = [];
+var _userPermissions;
+var _userPermissionsPromise;
 var _updateComponentQueue = [];
 var _defaults = {
     onDenied: null,
     transformData: null,
-    comparePermission(requiredPermissions, userPermissions) {
+    comparePermission(requiredPermissions = [], userPermissions = []) {
         for (let i = 0; i < requiredPermissions.length; i++) {
             let requiredPermission = requiredPermissions[i];
     
@@ -29,11 +30,13 @@ var _defaults = {
 };
 
 function checkPermission(permissions) {
+    // 必要的权限
     if (isEmpty(permissions)) {
         return true;
     }
 
-    if (isEmpty(_userPermissions) || isPromise(_userPermissions)) {
+    // 用户的权限
+    if (isEmpty(_userPermissions)) {
         return false;
     }
 
@@ -97,6 +100,13 @@ function filterPermission(element, onDenied) {
     return element;
 }
 
+function updateComponents(componentQueue = []) {
+    var component;
+    while (component = componentQueue.shift()) {
+        component.forceUpdate();
+    }
+}
+
 export function permission(permissions, onDenied) {
     var _permissions;
     var _onDenied;
@@ -109,7 +119,7 @@ export function permission(permissions, onDenied) {
         _onDenied = onDenied;
     }
 
-    // 为 null 表示用户不想使用回调
+    // 为 null 表示用户不想使用回调, 包括默认的 onDenied
     if (!_onDenied && _onDenied !== null) {
         _onDenied = _defaults.onDenied;
     }
@@ -120,8 +130,8 @@ export function permission(permissions, onDenied) {
             
             componentDidMount() {
                 super.componentDidMount && super.componentDidMount();
-                // 如果是 promise 则加入更新队列
-                if (isPromise(_userPermissions)) {
+                // 如果 _userPermissionsPromise 存在说明 Promise 还是 pending 状态.
+                if (!_userPermissions && _userPermissionsPromise) {
                     _updateComponentQueue.push(this);
                 }
             }
@@ -146,7 +156,7 @@ export function permission(permissions, onDenied) {
                         break;
                 }
 
-                return newElement;
+                return newElement || null;  // 不能返回 undefined, 要报错.
             }
         };
     };
@@ -159,27 +169,42 @@ permission.settings = function(options) {
 
 // 设置用户权限
 permission.setUserPermissions = function(permissions) {
-    // lazy load
-    if (isPromise(permissions)) {
-        _userPermissions = permissions;
-        _userPermissions.then(function(data) {
-            // 注意此处 _userPermissions 从 Promise 转为了真正的权限数据
-            _userPermissions = handleUserPermissions(data);
-
-            var component;
-            while (component = _updateComponentQueue.shift()) {
-                component.forceUpdate();
-            }
-        }, function(error) {
-            _userPermissions = [];
-            _updateComponentQueue = [];
-            throw new SetPermissionException(error);
-        });
-    } else {
+    if (permissions) {
         _userPermissions = handleUserPermissions(permissions);
     }
 };
 
+// lazy load
+permission.setUserPermissionsAsync = function(permissions) {
+    if (isPromise(permissions)) {
+        _userPermissionsPromise = permissions;
+        _userPermissionsPromise.then((data) => {
+            permission.setUserPermissions(data);
+            // 拿到用户权限后刷新队列里的组件, 重新检测权限
+            updateComponents(_updateComponentQueue);
+        }, (error) => {
+            _userPermissions = null;
+            _userPermissionsPromise = null;
+            _updateComponentQueue = [];
+            throw new SetPermissionException(error);
+        // 接收数据后清除 _userPermissionsPromise
+        }).finally(() => {
+            _userPermissionsPromise = null;
+        });
+    } 
+};
+
 permission.getUserPermissions = function() {
     return _userPermissions;
+};
+
+permission.getUserPermissionsAsync = function(cb) {
+    if (_userPermissionsPromise) {
+        _userPermissionsPromise.then((data) => {
+            permission.setUserPermissions(data);
+            cb(_userPermissions);
+        }, cb);
+    } else {
+        cb(_userPermissions);
+    }
 };

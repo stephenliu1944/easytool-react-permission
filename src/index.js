@@ -1,8 +1,12 @@
 import { permission } from './permission';
 
-var { setUserPermissions } = permission;
+var { setUserPermissions, setUserPermissionsAsync, getUserPermissions, getUserPermissionsAsync } = permission;
 
 export {
-    setUserPermissions
+    setUserPermissions,
+    setUserPermissionsAsync,
+    getUserPermissions,
+    getUserPermissionsAsync
 };
+
 export default permission;

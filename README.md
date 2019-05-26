@@ -35,8 +35,8 @@ render(
 ```
 
 ### Set User's permissions.  
-setUserPermissions() support number, string, array or promise argument.
-```jsx
+setUserPermissions(), sync to set User's permissions, method receive number, string or array args.
+```js
 import permission from '@beanreact/permission';
 // number
 permission.setUserPermissions(1);
@@ -46,6 +46,11 @@ permission.setUserPermissions('1');
 permission.setUserPermissions('1, 2, 3');
 // or array
 permission.setUserPermissions(['a', 'b', 'c']);
+```
+
+setUserPermissionsAsync(), async to set User's permissions. receive a Promise instance.
+```js
+import permission from '@beanreact/permission';
 // or even promise
 var promise = new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -54,10 +59,24 @@ var promise = new Promise((resolve, reject) => {
         reject('error');
     }, 5000);
 });
-permission.setUserPermissions(promise);
+permission.setUserPermissionsAsync(promise);
+```
+
+### Get User's permissions.  
+getUserPermissions(), sync to get userPermissions data.
+```js
+var userPermissions = permission.getUserPermissions();
+```
+
+getUserPermissionsAsync(), async to get userPermissions data. If you use setUserPermissionsAsync() method to set user's permissions, you better to use this method to get userPermissions data.
+```js
+permission.getUserPermissionsAsync((userPermissions) => {
+    console.log(userPermissions);
+});
 ```
 
 ### Set Element's permissions.
+it means User need to have these permissions which is elements set, then them will activate in this Component.
 ```jsx
 import permission from '@beanreact/permission';
 
@@ -89,6 +108,7 @@ class MyComponent extends Component {
 ```
 
 ### Set Component's permissions.
+it means it's the required permissions on this Components.
 ```jsx
 import permission from '@beanreact/permission';
 
@@ -115,7 +135,7 @@ class MyComponent extends Component {
 }
 ```
 
-### Handle denied hook.
+### Handle denied.
 ```jsx
 import permission from '@beanreact/permission';
 
@@ -141,7 +161,7 @@ class MyComponent extends Component {
 }
 ```
 
-### Set Default settings.
+### Set Default options.
 ```jsx
 import permission from '@beanreact/permission';
 
@@ -170,9 +190,27 @@ permission(permissions, onDenied)
 
 /**
  * @desc set global permissions for user.
- * @param { number | string | array | promise } permissions set user's permissions.
+ * @param { number | string | array } permissions set user's permissions.
  */
 permission.setUserPermissions(permissions)
+
+/**
+ * @desc async to set global permissions for user.
+ * @param { promise } permissions a promise instance to receive user's permissions.
+ */
+permission.setUserPermissionsAsync(permissions)
+
+/**
+ * @desc sync to get user's permissions.
+ * @return user's permissions.
+ */
+permission.getUserPermissions(permissions)
+
+/**
+ * @desc async to get user's permissions.
+ * @param { function } callback method receive a param that is userPermissions data.
+ */
+permission.getUserPermissionsAsync(permissions)
 
 /**
  * @desc
