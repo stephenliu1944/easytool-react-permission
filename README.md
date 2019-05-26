@@ -1,5 +1,5 @@
 # @beanreact/permission
-Use for react element permission.
+Happy to process Component permissions.
 
 ## Install
 ```
@@ -35,7 +35,8 @@ render(
 ```
 
 ### Set User's permissions.  
-setUserPermissions(), sync to set User's permissions, method receive number, string or array args.
+setUserPermissions()  
+Sync to set User's permissions, method receive number, string or array args.
 ```js
 import permission from '@beanreact/permission';
 // number
@@ -48,7 +49,8 @@ permission.setUserPermissions('1, 2, 3');
 permission.setUserPermissions(['a', 'b', 'c']);
 ```
 
-setUserPermissionsAsync(), async to set User's permissions. receive a Promise instance.
+setUserPermissionsAsync()  
+Async to set User's permissions. receive a Promise instance.
 ```js
 import permission from '@beanreact/permission';
 // or even promise
@@ -63,12 +65,14 @@ permission.setUserPermissionsAsync(promise);
 ```
 
 ### Get User's permissions.  
-getUserPermissions(), sync to get userPermissions data.
+getUserPermissions()  
+Sync to get userPermissions data.
 ```js
 var userPermissions = permission.getUserPermissions();
 ```
 
-getUserPermissionsAsync(), async to get userPermissions data. If you use setUserPermissionsAsync() method to set user's permissions, you better to use this method to get userPermissions data.
+getUserPermissionsAsync()  
+Async to get userPermissions data. If you use setUserPermissionsAsync() method to set user's permissions, you better to use this method to get userPermissions data.
 ```js
 permission.getUserPermissionsAsync((userPermissions) => {
     console.log(userPermissions);
@@ -76,7 +80,7 @@ permission.getUserPermissionsAsync((userPermissions) => {
 ```
 
 ### Set Element's permissions.
-it means User need to have these permissions which is elements set, then them will activate in this Component.
+It means User need to have these permissions which is elements set, then them will activate in this Component.
 ```jsx
 import permission from '@beanreact/permission';
 
@@ -108,7 +112,7 @@ class MyComponent extends Component {
 ```
 
 ### Set Component's permissions.
-it means it's the required permissions on this Components.
+It means it's the required permissions on this Components.
 ```jsx
 import permission from '@beanreact/permission';
 
