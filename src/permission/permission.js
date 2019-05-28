@@ -29,20 +29,20 @@ var _defaults = {
     }
 };
 
-function checkPermission(permissions) {
+function checkPermission(permissions, userPermissions) {
     // 必要的权限
     if (isEmpty(permissions)) {
         return true;
     }
 
     // 用户的权限
-    if (isEmpty(_userPermissions)) {
+    if (isEmpty(userPermissions)) {
         return false;
     }
 
     var requiredPermissions = formatPermissionValue(permissions);
 
-    return _defaults.comparePermission(requiredPermissions, _userPermissions);
+    return _defaults.comparePermission(requiredPermissions, userPermissions);
 }
 
 // 接收到用户的权限数据后进行处理
@@ -70,7 +70,7 @@ function handleDeniedHook(permission, element, onDenied) {
 }
 
 // 递归遍历 Virtual Tree
-function filterPermission(element, onDenied) {
+function filterPermission(element, userPermissions, onDenied) {
     if (!element) {
         return;
     }
@@ -78,20 +78,23 @@ function filterPermission(element, onDenied) {
     // 只处理 DOMElement 和 ComponentElement
     if (isReactDOMElement(element) || isReactComponentElement(element)) {
         var permission = element.props['data-permission'] || element.props['data-permissions'] || element.props['permission'] || element.props['permissions'];
-
-        if (checkPermission(permission)) {
-            let { children } = element.props;
+        
+        // TODO: 返回缺失的权限数组
+        if (checkPermission(permission, userPermissions)) {
+            let { children, ...other } = element.props;
             let newChildren;
 
             if (children) {
                 newChildren = [];
                 Children.forEach(children, (child) => {
-                    let checkedChild = filterPermission(child, onDenied);
+                    let checkedChild = filterPermission(child, userPermissions, onDenied);
                     checkedChild && newChildren.push(checkedChild);
                 });
             }
-            // 返回权限过滤后的元素
-            return React.cloneElement(element, null, newChildren);
+            // 返回权限过滤后的元素. 
+            // TODO: element.key为空的情况会报警告
+            let newElement = React.cloneElement(element, null, newChildren);    // key and ref from the original element will be preserved.
+            return newElement;
         } 
         
         return handleDeniedHook(permission, element, onDenied);
@@ -125,30 +128,38 @@ export function permission(permissions, onDenied) {
     }
 
     return function(WrappedComponent) {
-
+        
         return class extends WrappedComponent {
             
             componentDidMount() {
                 super.componentDidMount && super.componentDidMount();
                 // 如果 _userPermissionsPromise 存在说明 Promise 还是 pending 状态.
+                // TODO: 目前只能延迟刷新 Class Component, 考虑纯函数组件: Hooks 和 stateless Component
                 if (!_userPermissions && _userPermissionsPromise) {
                     _updateComponentQueue.push(this);
                 }
             }
 
-            // TODO: 销毁时清除内存占用
-            // componentWillUnmount() {}
+            componentWillUnmount() {
+                super.componentWillUnmount && super.componentWillUnmount();
+                
+                // 组件被销毁时, 从更新队列中移除
+                var index = _updateComponentQueue.findIndex((component) => component === this);
+                if (index !== -1) {
+                    _updateComponentQueue.splice(index, 1);
+                }
+            }
 
             render() {
                 var newElement = null;
                 // 校验当前 Component 是否满足权限
-                var status = checkPermission(_permissions) ? Status.AUTHORIZED : Status.DENIED;
+                var status = checkPermission(_permissions, _userPermissions) ? Status.AUTHORIZED : Status.DENIED;
 
                 switch (status) {
                     case Status.AUTHORIZED: // 认证通过
-                        var originElement = super.render();                        
+                        var originElement = super.render();       
                         // 校验子组件是否满足权限
-                        newElement = filterPermission(originElement, _onDenied);
+                        newElement = filterPermission(originElement, _userPermissions, _onDenied);
                         break;
                     case Status.DENIED:     // 拒绝
                         // 调用 denied 回调方法

@@ -48,7 +48,8 @@ export default function(fileName) {
                 isDEV && {
                     namedExports: {
                         'node_modules/react-dom/index.js': ['render'],
-                        'node_modules/react/react.js': ['Component', 'Children']
+                        // 'node_modules/react/react.js': ['Component', 'Children']     // v15
+                        'node_modules/react/index.js': ['Component', 'Children']        // v16
                     }
                 }
             ), 
