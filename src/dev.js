@@ -17,6 +17,10 @@ var promise = new Promise((resolve, reject) => {
 
 permission.setUserPermissionsAsync(promise);
 
+permission.getUserPermissionsAsync((p) => {
+    console.log('p: ', p);
+});
+
 @permission((num, el) => {
     console.log('denied: ', num, el);
     // var { children, ...other } = el.props;

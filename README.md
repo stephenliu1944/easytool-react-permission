@@ -35,7 +35,7 @@ render(
 ```
 
 ### Set User's permissions.  
-setUserPermissions()  
+#### setUserPermissions()  
 Sync to set User's permissions, method receive number, string or array args.
 ```js
 import permission from '@beanreact/permission';
@@ -49,8 +49,8 @@ permission.setUserPermissions('1, 2, 3');
 permission.setUserPermissions(['a', 'b', 'c']);
 ```
 
-setUserPermissionsAsync()  
-Async to set User's permissions. receive a Promise instance.
+#### setUserPermissionsAsync()  
+Async to set User's permissions. method receive a Promise instance.
 ```js
 import permission from '@beanreact/permission';
 // or even promise
@@ -65,13 +65,13 @@ permission.setUserPermissionsAsync(promise);
 ```
 
 ### Get User's permissions.  
-getUserPermissions()  
+#### getUserPermissions()  
 Sync to get userPermissions data.
 ```js
 var userPermissions = permission.getUserPermissions();
 ```
 
-getUserPermissionsAsync()  
+#### getUserPermissionsAsync()  
 Async to get userPermissions data. If you use setUserPermissionsAsync() method to set user's permissions, you better to use this method to get userPermissions data.
 ```js
 permission.getUserPermissionsAsync((userPermissions) => {
