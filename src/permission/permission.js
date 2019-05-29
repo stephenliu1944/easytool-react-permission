@@ -91,9 +91,12 @@ function filterPermission(element, userPermissions, onDenied) {
                     checkedChild && newChildren.push(checkedChild);
                 });
             }
-            // 返回权限过滤后的元素. 
-            // TODO: element.key为空的情况会报警告
+            // children 为数组时 react会检测 key 是否为空, 为空会报警告.
+            if (newChildren && newChildren.length === 1) {
+                newChildren = newChildren[0];
+            }
             let newElement = React.cloneElement(element, null, newChildren);    // key and ref from the original element will be preserved.
+            // 返回权限过滤后的元素. 
             return newElement;
         } 
         

@@ -139,6 +139,28 @@ class MyComponent extends Component {
 }
 ```
 
+### Set Function Component's permissions.
+It's use for function Component.
+```jsx
+import { setUserPermissions, withPermission } from '@beanreact/permission';
+
+setUserPermissions('1, 2, 3');
+
+var Permission = withPermission((props) => {
+    return (
+        <p>
+            <a permission="1" href="#">Hello 1 </a>
+            <a permission="2" href="#">Hello 2 </a>
+        </p>
+    );
+});
+
+render(
+    <Permission />,
+    document.getElementById('app')
+);
+```
+
 ### Handle denied.
 ```jsx
 import permission from '@beanreact/permission';

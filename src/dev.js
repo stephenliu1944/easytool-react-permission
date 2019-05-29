@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { render } from 'react-dom';
-import permission, { setUserPermissions, wrapper } from './index';
+import permission, { setUserPermissions, withPermission } from './index';
 
 permission.settings({
     transformData(data) {
@@ -177,7 +177,7 @@ function SubComponent3(props) {
     );
 }
 
-var T = wrapper((props) => {
+var T = withPermission((props) => {
     return (
         <p>
             <a permission="1" href="#">Hello1 </a>

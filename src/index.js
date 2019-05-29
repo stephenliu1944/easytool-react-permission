@@ -1,5 +1,5 @@
 import { permission } from './permission';
-import { wrapper } from './wrapper';
+import { withPermission } from './wrapper';
 
 var { setUserPermissions, setUserPermissionsAsync, getUserPermissions, getUserPermissionsAsync } = permission;
 
@@ -8,7 +8,7 @@ export {
     setUserPermissionsAsync,
     getUserPermissions,
     getUserPermissionsAsync,
-    wrapper
+    withPermission
 };
 
 export default permission;
