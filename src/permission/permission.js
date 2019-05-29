@@ -100,7 +100,9 @@ function filterPermission(element, userPermissions, onDenied, index) {
 
             // cloneElement(element, props, children), 第二个, 第三个参数用于覆盖拷贝的 element 属性, 如果不输入默认使用原 element 的.
             // key and ref from the original element will be preserved. 第二个参数可以覆盖 key 和 ref.
-            let newElement = React.cloneElement(element, { key: element.key || index }, newChildren);    
+            let newElement = React.cloneElement(element, { 
+                key: element.key || index 
+            }, newChildren);    
             // 返回权限过滤后的元素. 
             return newElement;
         } 
