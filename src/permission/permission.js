@@ -60,6 +60,11 @@ function handleUserPermissions(data) {
 }
 
 function handleDeniedHook(permission, element, onDenied) {
+    // 如果 _userPermissionsPromise 存在说明还在加载用户权限, 默认隐藏所有元素不显示, 不执行 onDenied 方法
+    if (_userPermissionsPromise) {
+        return;
+    }
+
     var newElement = onDenied && onDenied(permission, element);
 
     if (React.isValidElement(newElement)) {
@@ -101,7 +106,7 @@ function filterPermission(element, userPermissions, onDenied, index) {
             // cloneElement(element, props, children), 第二个, 第三个参数用于覆盖拷贝的 element 属性, 如果不输入默认使用原 element 的.
             // key and ref from the original element will be preserved. 第二个参数可以覆盖 key 和 ref.
             let newElement = React.cloneElement(element, { 
-                key: element.key || index 
+                key: element.key || index       // TODO: 这里index可能会和用户设置的冲突
             }, newChildren);    
             // 返回权限过滤后的元素. 
             return newElement;
@@ -145,7 +150,7 @@ export function permission(permissions, onDenied) {
                 super.componentDidMount && super.componentDidMount();
                 // 如果 _userPermissionsPromise 存在说明 Promise 还是 pending 状态.
                 // TODO: 目前只能延迟刷新 Class Component, 考虑纯函数组件: Hooks 和 stateless Component
-                if (!_userPermissions && _userPermissionsPromise) {
+                if (_userPermissionsPromise) {
                     _updateComponentQueue.push(this);
                 }
             }
@@ -190,8 +195,10 @@ permission.settings = function(options) {
 
 // 设置用户权限
 permission.setUserPermissions = function(permissions) {
-    if (permissions) {
-        _userPermissions = handleUserPermissions(permissions);
+    _userPermissions = handleUserPermissions(permissions);
+    // 接收数据后清除 _userPermissionsPromise
+    if (_userPermissionsPromise) {
+        _userPermissionsPromise = null;
     }
 };
 
@@ -208,9 +215,6 @@ permission.setUserPermissionsAsync = function(permissions) {
             _userPermissionsPromise = null;
             _updateComponentQueue = [];
             throw new SetPermissionException(error);
-        // 接收数据后清除 _userPermissionsPromise
-        }).finally(() => {
-            _userPermissionsPromise = null;
         });
     } 
 };
@@ -222,8 +226,7 @@ permission.getUserPermissions = function() {
 permission.getUserPermissionsAsync = function(cb) {
     if (_userPermissionsPromise) {
         _userPermissionsPromise.then((data) => {
-            permission.setUserPermissions(data);
-            cb(_userPermissions);
+            cb(handleUserPermissions(data));
         }, cb);
     } else {
         cb(_userPermissions);

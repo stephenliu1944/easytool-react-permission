@@ -1,5 +1,5 @@
 # @beanreact/permission
-Happy to process Component permissions.
+Happy to handle React Component permissions.
 
 ## Install
 ```
@@ -9,10 +9,10 @@ npm install -S @beanreact/permission
 ## Usage
 ```jsx
 import permission from '@beanreact/permission';
-// set user's permissions first.
+// 1. you need to set user's permissions first.
 permission.setUserPermissions(['a', 'b', 'c']);
 
-// add annotation on Component
+// 2. add annotation on Component.
 @permission()
 class MyComponent extends Component {
 
@@ -28,6 +28,7 @@ class MyComponent extends Component {
     }
 }
 
+// 3. then use it.
 render(
     <MyComponent />,
     document.getElementById('app')
@@ -99,8 +100,8 @@ class MyComponent extends Component {
                     </p>
                 </div>
                 {/* use "permission" attribute for component element */}
-                <SubComponent1 permission="1" />
-                <SubComponent2 permission={2} />
+                <SubComponent1 permission={1} />
+                <SubComponent2 permission="2" />
                 <SubComponent3 permission="3,4,5">
                     <SubComponent4 permission={[6, 7, 8]} />
                     <SubComponent5 permission={['a', 'b', 'c']} />
@@ -132,7 +133,7 @@ class MyComponent extends Component {
 Component's permissions with hook
 ```jsx
 @permission([1,2,3], (permission, element) => {
-    // do something...
+    // handle denied
 })
 class MyComponent extends Component {
     ...
@@ -140,7 +141,7 @@ class MyComponent extends Component {
 ```
 
 ### Set Function Component's permissions.
-It's use for function Component.
+withPermission method is use for Function Component.
 ```jsx
 import { setUserPermissions, withPermission } from '@beanreact/permission';
 
@@ -161,9 +162,48 @@ render(
 );
 ```
 
+Set Function Component's permission.
+```jsx
+var Permission = withPermission((props) => {
+    return (
+        <p>
+            <a permission="1" href="#">Hello 1 </a>
+            <a permission="2" href="#">Hello 2 </a>
+        </p>
+    );
+}, [1, 2, 3]);
+```
+
+Function Component with Hook.
+```jsx
+var Permission = withPermission((props) => {
+    return (
+        <p>
+            <a permission="1" href="#">Hello 1 </a>
+            <a permission="2" href="#">Hello 2 </a>
+        </p>
+    );
+}, (permission, element) => {
+    // handle denied
+});
+// or
+var Permission = withPermission((props) => {
+    return (
+        <p>
+            <a permission="1" href="#">Hello 1 </a>
+            <a permission="2" href="#">Hello 2 </a>
+        </p>
+    );
+}, [1, 2, 3], (permission, element) => {
+    // handle denied
+});
+```
+
 ### Handle denied.
 ```jsx
-import permission from '@beanreact/permission';
+import permission, { setUserPermissions } from '@beanreact/permission';
+
+setUserPermissions('3');
 
 @permission((requiredPermission, deniedElement) => {
     if (requiredPermission === 1) {
@@ -171,8 +211,7 @@ import permission from '@beanreact/permission';
         return <h1>Permissions Denied</h1>;
     } else if (requiredPermission === 2) {
         // rewrite deniedElement
-        var { children, ...other } = deniedElement.props;
-        return React.cloneElement(deniedElement, Object.assign({}, other, { disable: true }), children);
+        return React.cloneElement(deniedElement, { style: { color: 'red' });
     }
 })
 class MyComponent extends Component {
@@ -180,7 +219,8 @@ class MyComponent extends Component {
     render() {
         return (
             <div>
-                <h1>{this.props.disable ? 'DISABLE' : 'ENABLE' }</h1>
+                <p data-permissions="1">Hello</p>
+                <p data-permissions="2">World</p>
             </div>
         );
     }
@@ -208,7 +248,7 @@ permission.settings({
 ## API
 ```js
 /**
- * @desc
+ * @desc enable permission feature for Class Component.
  * @param { number | string | array } permissions set required permissions of component.
  * @param { function } onDenied when permission denied occur(under the Component Class), this method will be invoked everytime, receive a required permission and denied element, return a replace element or nothing.
  */
@@ -222,9 +262,9 @@ permission.setUserPermissions(permissions)
 
 /**
  * @desc async to set global permissions for user.
- * @param { promise } permissions a promise instance to receive user's permissions.
+ * @param { promise } promise a promise instance to async receive user's permissions.
  */
-permission.setUserPermissionsAsync(permissions)
+permission.setUserPermissionsAsync(promise)
 
 /**
  * @desc sync to get user's permissions.
@@ -236,7 +276,7 @@ permission.getUserPermissions(permissions)
  * @desc async to get user's permissions.
  * @param { function } callback method receive a param that is userPermissions data.
  */
-permission.getUserPermissionsAsync(permissions)
+permission.getUserPermissionsAsync(callback)
 
 /**
  * @desc
@@ -246,4 +286,12 @@ permission.getUserPermissionsAsync(permissions)
  * @param { function } options.transformData will transform setUserPermissions's data,, default null.
  */
 permission.settings(options)
+
+/**
+ * @desc enable permission feature for Function Component.
+ * @param { function } WrappedComponent Function Component.
+ * @param { number | string | array } permissions set required permissions of Function Component.
+ * @param { function } onDenied when permission denied occur(under the Function Component), this method will be invoked everytime, function receive required permission and denied element, return a replace element or nothing.
+ */
+withPermission(WrappedComponent, permissions, onDenied)
 ```
