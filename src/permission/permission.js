@@ -70,7 +70,7 @@ function handleDeniedHook(permission, element, onDenied) {
 }
 
 // 递归遍历 Virtual Tree
-function filterPermission(element, userPermissions, onDenied) {
+function filterPermission(element, userPermissions, onDenied, index) {
     if (!element) {
         return;
     }
@@ -81,21 +81,26 @@ function filterPermission(element, userPermissions, onDenied) {
         
         // TODO: 返回缺失的权限数组
         if (checkPermission(permission, userPermissions)) {
-            let { children, ...other } = element.props;
-            let newChildren;
+            let newChildren = [];
+            let { children } = element.props;
 
             if (children) {
-                newChildren = [];
-                Children.forEach(children, (child) => {
-                    let checkedChild = filterPermission(child, userPermissions, onDenied);
+                Children.forEach(children, (child, _index) => {
+                    let checkedChild = filterPermission(child, userPermissions, onDenied, _index);
                     checkedChild && newChildren.push(checkedChild);
                 });
             }
+            
             // children 为数组时 react会检测 key 是否为空, 为空会报警告.
-            if (newChildren && newChildren.length === 1) {
+            if (newChildren.length === 0) {
+                newChildren = null;
+            } else if (newChildren.length === 1) {
                 newChildren = newChildren[0];
             }
-            let newElement = React.cloneElement(element, null, newChildren);    // key and ref from the original element will be preserved.
+
+            // cloneElement(element, props, children), 第二个, 第三个参数用于覆盖拷贝的 element 属性, 如果不输入默认使用原 element 的.
+            // key and ref from the original element will be preserved. 第二个参数可以覆盖 key 和 ref.
+            let newElement = React.cloneElement(element, { key: element.key || index }, newChildren);    
             // 返回权限过滤后的元素. 
             return newElement;
         } 
@@ -169,7 +174,7 @@ export function permission(permissions, onDenied) {
                         newElement = handleDeniedHook(_permissions, this, _onDenied);
                         break;
                 }
-
+                
                 return newElement || null;  // 不能返回 undefined, 要报错.
             }
         };

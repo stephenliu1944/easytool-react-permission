@@ -179,7 +179,7 @@ function SubComponent3(props) {
 
 var T = withPermission((props) => {
     return (
-        <p>
+        <p id="1" name="P">
             <a permission="1" href="#">Hello1 </a>
             <a permission="2" href="#">HelloB </a>
         </p>
