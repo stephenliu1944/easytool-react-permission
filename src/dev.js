@@ -56,9 +56,9 @@ class MyComponent extends Component {
     renderData(data) {
         return data.map((data, index) => {
             return (
-                <div key={index + 1} data-permission={index + 1}>
+                <div key={index} data-permission="444">
                     <p>Function Map {data}</p>
-                    <a  href="#">{index + 1}</a>
+                    <a href="#">{index + 1}</a>
                 </div>
             );
         });
@@ -102,11 +102,11 @@ class MyComponent extends Component {
                         }}
                     />
                 </Table> */}
-            </div>
+            </div>            
         );
     }
 } 
-var a;
+
 @permission()
 class SubComponent1 extends Component {
     
@@ -115,7 +115,7 @@ class SubComponent1 extends Component {
     }
 
     componentDidMount() {
-        a = setTimeout(() => {
+        this.state.time = setTimeout(() => {
             this.setState({
                 data: ['A', 'B', 'C']
             });
@@ -123,12 +123,12 @@ class SubComponent1 extends Component {
     }
 
     componentWillUnmount() {
-        clearTimeout(a);
+        clearTimeout(this.state.time);
     }
 
     renderDate(data = []) {
         return data.map((data, index) => {
-            return (<div permission={data}>
+            return (<div key={index} permission={data}>
                 <a href="#">{data}</a>
             </div>);
         });

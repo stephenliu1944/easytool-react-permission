@@ -1,7 +1,7 @@
 import React, { Children } from 'react';
 import { UserStatus, CheckStatus } from 'constants/enum';
 import SetPermissionException from 'exceptions/SetPermissionException';
-import { isEmpty, isNotEmpty, isPromise, trim } from 'utils/common';
+import { isEmpty, isNotEmpty, isArray, isPromise, trim } from 'utils/common';
 import { isReactDOMElement, isReactComponentElement, isReactText, isReactEmpty } from 'utils/react';
 import { formatPermissionValue } from 'utils/format';
 
@@ -93,7 +93,7 @@ function filterPermission(element, userPermissions, onDenied, index) {
         return;
     }
 
-    // 只处理 DOMElement 和 ComponentElement
+    // 处理 DOMElement 和 ComponentElement
     if (isReactDOMElement(element) || isReactComponentElement(element)) {
         var permission = element.props['data-permission'] || element.props['data-permissions'] || element.props['permission'] || element.props['permissions'];
         
@@ -118,16 +118,19 @@ function filterPermission(element, userPermissions, onDenied, index) {
 
             // cloneElement(element, props, children), 第二个, 第三个参数用于覆盖拷贝的 element 属性, 如果不输入默认使用原 element 的.
             // key and ref from the original element will be preserved. 第二个参数可以覆盖 key 和 ref.
-            let newElement = React.cloneElement(element, { 
+            let newElement = React.cloneElement(element, {
                 key: element.key || generateKey(element, index)       
             }, newChildren);    
-            
+
             // 返回权限过滤后的元素. 
             return newElement;
         } 
         
         return handleDeniedHook(permission, element, onDenied, index);
-    } 
+    // 处理 Array 的情况
+    } else if (isArray(element)) {
+        return element.map((el, _index) => filterPermission(el, userPermissions, onDenied, _index));
+    }
     // 其他元素类型暂不处理
     return element;
 }
@@ -184,7 +187,7 @@ export function permission(permissions, onDenied) {
                 var { AUTHORIZED, DENIED } = CheckStatus;
                 // 校验当前 Component 是否满足权限
                 var status = checkPermission(_permissions, _userPermissions) ? AUTHORIZED : DENIED;
-
+                
                 switch (status) {
                     case AUTHORIZED: // 认证通过
                         var originElement = super.render();       
@@ -196,7 +199,7 @@ export function permission(permissions, onDenied) {
                         newElement = handleDeniedHook(_permissions, this, _onDenied);
                         break;
                 }
-                
+
                 return newElement || null;  // 不能返回 undefined, 要报错.
             }
         };
