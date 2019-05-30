@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { render } from 'react-dom';
 import permission, { setUserPermissions, withPermission } from './index';
 
+var key = 0;
 permission.settings({
     transformData(data) {
         return data;
@@ -14,16 +15,8 @@ var promise = new Promise((resolve, reject) => {
     }, 3000);
 });
 
-permission.setUserPermissionsAsync(promise);
-
-permission.getUserPermissionsAsync((p) => {
-    console.log('UserPermissions: ', p);
-});
-
-@permission((num, el) => {
-    console.log('---------------------------', el);
-    
-    return React.cloneElement(el, { style: { color: 'red' } });
+@permission((num, el, index) => {
+    return React.cloneElement(el, { key: index, style: { color: 'red' } });
 })
 class MyComponent extends Component {
 
@@ -35,8 +28,6 @@ class MyComponent extends Component {
         setTimeout(() => {
             this.setState({
                 data: ['A', 'B', 'C']
-            }, () => {
-                // this.forceUpdate();
             });
         }, 2000);
         
@@ -65,7 +56,7 @@ class MyComponent extends Component {
     renderData(data) {
         return data.map((data, index) => {
             return (
-                <div key={index + 1}>
+                <div key={index + 1} data-permission={index + 1}>
                     <p>Function Map {data}</p>
                     <a  href="#">{index + 1}</a>
                 </div>
@@ -76,12 +67,12 @@ class MyComponent extends Component {
     render() {
         return (
             <div id="0" name="div__">
-                <h1 type="text" data-permission="5">Denied</h1>
+                <h1 type="text" data-permission="1">Denied</h1>
                 <div id="1" name="subcomponent0____" data-permission={['1']}>
                     <h1>MyComponent</h1>
                     { this.renderData(this.state.data) }
                 </div>
-                <SubComponent1 id="2" name="subcomponent1____"  permission={52} disable={false} />
+                <SubComponent1 id="2" name="subcomponent1____"  permission={4} disable={false} />
                 <SubComponent2 id="3" name="subcomponent2____">
                     <div data-permission="6">sc2</div>
                     <SubComponent1 />
@@ -115,7 +106,7 @@ class MyComponent extends Component {
         );
     }
 } 
-
+var a;
 @permission()
 class SubComponent1 extends Component {
     
@@ -124,11 +115,15 @@ class SubComponent1 extends Component {
     }
 
     componentDidMount() {
-        // setTimeout(() => {
-        //     this.setState({
-        //         data: ['A', 'B', 'C']
-        //     });
-        // }, 5000);
+        a = setTimeout(() => {
+            this.setState({
+                data: ['A', 'B', 'C']
+            });
+        }, 5000);
+    }
+
+    componentWillUnmount() {
+        clearTimeout(a);
     }
 
     renderDate(data = []) {
@@ -186,3 +181,9 @@ render(
     <MyComponent />,
     document.getElementById('app')
 );
+
+permission.setUserPermissions([1, 2, 'A']);
+
+permission.getUserPermissionsAsync((p) => {
+    console.log('UserPermissions: ', p);
+});

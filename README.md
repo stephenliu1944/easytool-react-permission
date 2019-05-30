@@ -9,10 +9,10 @@ npm install -S @beanreact/permission
 ## Usage
 ```jsx
 import permission from '@beanreact/permission';
-// 1. you need to set user's permissions first.
+// 1. Set user's permissions.
 permission.setUserPermissions(['a', 'b', 'c']);
 
-// 2. add annotation on Component.
+// 2. Add annotation on Component.
 @permission()
 class MyComponent extends Component {
 
@@ -28,7 +28,7 @@ class MyComponent extends Component {
     }
 }
 
-// 3. then use it.
+// 3. Use the Component.
 render(
     <MyComponent />,
     document.getElementById('app')
@@ -132,7 +132,7 @@ class MyComponent extends Component {
 
 Component's permissions with hook
 ```jsx
-@permission([1,2,3], (permission, element) => {
+@permission([1,2,3], (permission, element, index) => {
     // handle denied
 })
 class MyComponent extends Component {
@@ -183,7 +183,7 @@ var Permission = withPermission((props) => {
             <a permission="2" href="#">Hello 2 </a>
         </p>
     );
-}, (permission, element) => {
+}, (permission, element, index) => {
     // handle denied
 });
 // or
@@ -194,7 +194,7 @@ var Permission = withPermission((props) => {
             <a permission="2" href="#">Hello 2 </a>
         </p>
     );
-}, [1, 2, 3], (permission, element) => {
+}, [1, 2, 3], (permission, element, index) => {
     // handle denied
 });
 ```
@@ -205,13 +205,16 @@ import permission, { setUserPermissions } from '@beanreact/permission';
 
 setUserPermissions('3');
 
-@permission((requiredPermission, deniedElement) => {
+@permission((requiredPermission, deniedElement, index) => {
     if (requiredPermission === 1) {
         // use a valid element replace the denied element.
         return <h1>Permissions Denied</h1>;
     } else if (requiredPermission === 2) {
         // rewrite deniedElement
-        return React.cloneElement(deniedElement, { style: { color: 'red' });
+        return React.cloneElement(deniedElement, {
+            key: deniedElement.key || index,
+            style: { color: 'red' }
+        });
     }
 })
 class MyComponent extends Component {
@@ -235,7 +238,7 @@ permission.settings({
     transformData(data) {
         return data.reverse();
     },
-    onDenied(requiredPermission, deniedElement) {
+    onDenied(requiredPermission, deniedElement, index) {
         ...
     },
     comparePermission(requiredPermissions, userPermissions) {
@@ -250,7 +253,7 @@ permission.settings({
 /**
  * @desc enable permission feature for Class Component.
  * @param { number | string | array } permissions set required permissions of component.
- * @param { function } onDenied when permission denied occur(under the Component Class), this method will be invoked everytime, receive a required permission and denied element, return a replace element or nothing.
+ * @param { function } onDenied when permission denied occur(under the Component Class), this method will be invoked everytime, function receive required permission, denied element and element index in parent children, return a replace element or nothing.
  */
 permission(permissions, onDenied)
 
@@ -282,7 +285,7 @@ permission.getUserPermissionsAsync(callback)
  * @desc
  * @param { object } options set default options.
  * @param { function } options.comparePermission custom compare function, receive(requiredPermissions, userPermissions). return true means authorized, false means denied.
- * @param { function } options.onDenied custom global onDenied, recieve(requiredPermissions, deniedElement).
+ * @param { function } options.onDenied custom global onDenied, recieve(requiredPermissions, deniedElement, index).
  * @param { function } options.transformData will transform setUserPermissions's data,, default null.
  */
 permission.settings(options)
@@ -291,7 +294,7 @@ permission.settings(options)
  * @desc enable permission feature for Function Component.
  * @param { function } WrappedComponent Function Component.
  * @param { number | string | array } permissions set required permissions of Function Component.
- * @param { function } onDenied when permission denied occur(under the Function Component), this method will be invoked everytime, function receive required permission and denied element, return a replace element or nothing.
+ * @param { function } onDenied when permission denied occur(under the Function Component), this method will be invoked everytime, function receive required permission, denied element and element index in parent children, return a replace element or nothing.
  */
 withPermission(WrappedComponent, permissions, onDenied)
 ```

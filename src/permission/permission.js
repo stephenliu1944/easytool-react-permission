@@ -1,12 +1,13 @@
 import React, { Children } from 'react';
-import { Status } from 'constants/enum';
+import { UserStatus, CheckStatus } from 'constants/enum';
 import SetPermissionException from 'exceptions/SetPermissionException';
-import { isEmpty, isPromise, trim } from 'utils/common';
+import { isEmpty, isNotEmpty, isPromise, trim } from 'utils/common';
 import { isReactDOMElement, isReactComponentElement, isReactText, isReactEmpty } from 'utils/react';
 import { formatPermissionValue } from 'utils/format';
 
+var _userStatus = UserStatus.UNSET;
+var _userPromise;
 var _userPermissions;
-var _userPermissionsPromise;
 var _updateComponentQueue = [];
 var _defaults = {
     onDenied: null,
@@ -28,6 +29,18 @@ var _defaults = {
         return true;
     }
 };
+// 生成一个key
+function generateKey(element, index = 0) {
+    var key = '';
+
+    if (isReactDOMElement(element)) {
+        key = element.type;
+    } else if (isReactComponentElement(element)) {
+        key = element.type.name;
+    }
+    // TODO: key有点多余, 先这样吧
+    return `permission__${index}`;
+}
 
 function checkPermission(permissions, userPermissions) {
     // 必要的权限
@@ -58,16 +71,16 @@ function handleUserPermissions(data) {
     // 加载完后 _userPermissions 由 Promise 转为真正的权限列表
     return formatPermissionValue(_permissions);
 }
-
-function handleDeniedHook(permission, element, onDenied) {
-    // 如果 _userPermissionsPromise 存在说明还在加载用户权限, 默认隐藏所有元素不显示, 不执行 onDenied 方法
-    if (_userPermissionsPromise) {
+// TODO: index 默认值为0可能有问题
+function handleDeniedHook(permission, element, onDenied, index = 0) {
+    // 用户权限还未加载完成, 默认隐藏所有元素不显示, 不执行 onDenied 方法
+    if (_userStatus !== UserStatus.DONE) {
         return;
     }
 
-    var newElement = onDenied && onDenied(permission, element);
+    var newElement = onDenied && onDenied(permission, element, index);
 
-    if (React.isValidElement(newElement)) {
+    if (React.isValidElement(newElement)) {        
         return newElement;
     }
 
@@ -106,13 +119,14 @@ function filterPermission(element, userPermissions, onDenied, index) {
             // cloneElement(element, props, children), 第二个, 第三个参数用于覆盖拷贝的 element 属性, 如果不输入默认使用原 element 的.
             // key and ref from the original element will be preserved. 第二个参数可以覆盖 key 和 ref.
             let newElement = React.cloneElement(element, { 
-                key: element.key || index       // TODO: 这里index可能会和用户设置的冲突
+                key: element.key || generateKey(element, index)       
             }, newChildren);    
+            
             // 返回权限过滤后的元素. 
             return newElement;
         } 
         
-        return handleDeniedHook(permission, element, onDenied);
+        return handleDeniedHook(permission, element, onDenied, index);
     } 
     // 其他元素类型暂不处理
     return element;
@@ -148,35 +162,36 @@ export function permission(permissions, onDenied) {
             
             componentDidMount() {
                 super.componentDidMount && super.componentDidMount();
-                // 如果 _userPermissionsPromise 存在说明 Promise 还是 pending 状态.
                 // TODO: 目前只能延迟刷新 Class Component, 考虑纯函数组件: Hooks 和 stateless Component
-                if (_userPermissionsPromise) {
+                // 用户权限未加载完成时将组件加入刷新队列, 待用户权限加载后重新校验.
+                if (_userStatus !== UserStatus.DONE) {
                     _updateComponentQueue.push(this);
                 }
             }
 
             componentWillUnmount() {
-                super.componentWillUnmount && super.componentWillUnmount();
-                
                 // 组件被销毁时, 从更新队列中移除
                 var index = _updateComponentQueue.findIndex((component) => component === this);
                 if (index !== -1) {
                     _updateComponentQueue.splice(index, 1);
                 }
+
+                super.componentWillUnmount && super.componentWillUnmount();
             }
 
             render() {
                 var newElement = null;
+                var { AUTHORIZED, DENIED } = CheckStatus;
                 // 校验当前 Component 是否满足权限
-                var status = checkPermission(_permissions, _userPermissions) ? Status.AUTHORIZED : Status.DENIED;
+                var status = checkPermission(_permissions, _userPermissions) ? AUTHORIZED : DENIED;
 
                 switch (status) {
-                    case Status.AUTHORIZED: // 认证通过
+                    case AUTHORIZED: // 认证通过
                         var originElement = super.render();       
                         // 校验子组件是否满足权限
                         newElement = filterPermission(originElement, _userPermissions, _onDenied);
                         break;
-                    case Status.DENIED:     // 拒绝
+                    case DENIED:     // 拒绝
                         // 调用 denied 回调方法
                         newElement = handleDeniedHook(_permissions, this, _onDenied);
                         break;
@@ -196,25 +211,31 @@ permission.settings = function(options) {
 // 设置用户权限
 permission.setUserPermissions = function(permissions) {
     _userPermissions = handleUserPermissions(permissions);
-    // 接收数据后清除 _userPermissionsPromise
-    if (_userPermissionsPromise) {
-        _userPermissionsPromise = null;
+    // 用户权限设置完成
+    _userStatus = UserStatus.DONE;
+    // 拿到用户权限后刷新队列里的组件, 重新检测它们的权限
+    if (isNotEmpty(_updateComponentQueue)) {
+        updateComponents(_updateComponentQueue);
     }
 };
 
 // lazy load
 permission.setUserPermissionsAsync = function(permissions) {
     if (isPromise(permissions)) {
-        _userPermissionsPromise = permissions;
-        _userPermissionsPromise.then((data) => {
+        _userPromise = permissions;
+        // 用户权限状态改为 pending 状态
+        _userStatus = UserStatus.PENDING;
+
+        _userPromise.then((data) => {
             permission.setUserPermissions(data);
-            // 拿到用户权限后刷新队列里的组件, 重新检测权限
-            updateComponents(_updateComponentQueue);
         }, (error) => {
+            // 设置出错恢复到未设置状态
+            _userStatus = UserStatus.UNSET;
             _userPermissions = null;
-            _userPermissionsPromise = null;
-            _updateComponentQueue = [];
             throw new SetPermissionException(error);
+        }).finally(() => {
+            // 接收数据后清除 _userPromise
+            _userPromise = null;
         });
     } 
 };
@@ -224,8 +245,8 @@ permission.getUserPermissions = function() {
 };
 
 permission.getUserPermissionsAsync = function(cb) {
-    if (_userPermissionsPromise) {
-        _userPermissionsPromise.then((data) => {
+    if (_userPromise) {
+        _userPromise.then((data) => {
             cb(handleUserPermissions(data));
         }, cb);
     } else {
