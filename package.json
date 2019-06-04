@@ -1,6 +1,6 @@
 {
   "name": "@beanreact/permission",
-  "version": "0.2.17",
+  "version": "0.2.18",
   "description": "Easy to process permission of Component",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",

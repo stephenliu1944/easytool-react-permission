@@ -2,7 +2,7 @@ import React, { Children } from 'react';
 import { UserStatus, CheckStatus } from 'constants/enum';
 import SetPermissionException from 'exceptions/SetPermissionException';
 import { isEmpty, isNotEmpty, isArray, isPromise, trim } from 'utils/common';
-import { isReactDOMElement, isReactComponentElement, isReactText, isReactEmpty } from 'utils/react';
+import { isReactDOMElement, isReactComponentElement, isReactClass, isReactFragment, isReactPortal } from 'utils/react';
 import { formatPermissionValue } from 'utils/format';
 
 var _userStatus = UserStatus.UNSET;
@@ -78,6 +78,7 @@ function handleDeniedHook(permission, element, onDenied, index = 0) {
         return;
     }
 
+    // TODO: 这里可能会有性能问题, 如果是 reactClass 需要调用 componentWillUnmount()
     var newElement = onDenied && onDenied(permission, element, index);
 
     if (React.isValidElement(newElement)) {        
@@ -92,9 +93,11 @@ function filterPermission(element, userPermissions, onDenied, index) {
     if (!element) {
         return;
     }
-
-    // 处理 DOMElement 和 ComponentElement
-    if (isReactDOMElement(element) || isReactComponentElement(element)) {
+    
+    // 处理 DOMElement, ComponentElement, ClassElement
+    if (isReactDOMElement(element) 
+            || isReactComponentElement(element)
+            || isReactClass(element)) {
         var permission = element.props['data-permission'] || element.props['data-permissions'] || element.props['permission'] || element.props['permissions'];
         
         // TODO: 返回缺失的权限数组
@@ -127,9 +130,14 @@ function filterPermission(element, userPermissions, onDenied, index) {
         } 
         
         return handleDeniedHook(permission, element, onDenied, index);
-    // 处理 Array 的情况
-    } else if (isArray(element)) {
-        return element.map((el, _index) => filterPermission(el, userPermissions, onDenied, _index));
+    // 处理 Array
+    } else if (isArray(element)
+            || isReactFragment(element)
+            || isReactPortal(element)) {
+        
+        let _children = element?.props?.children || element.children || element;
+
+        return Children.map(_children, (el, _index) => filterPermission(el, userPermissions, onDenied, _index));
     }
     // 其他元素类型暂不处理
     return element;
@@ -190,7 +198,7 @@ export function permission(permissions, onDenied) {
                 
                 switch (status) {
                     case AUTHORIZED: // 认证通过
-                        var originElement = super.render();       
+                        var originElement = super.render();   
                         // 校验子组件是否满足权限
                         newElement = filterPermission(originElement, _userPermissions, _onDenied);
                         break;
