@@ -113,7 +113,7 @@ class MyComponent extends Component {
 ```
 
 ### Set Component's permissions.
-It means it's the required permissions on this Components.
+It means User need to have these permissions to use this Components.
 ```jsx
 import permission from '@beanreact/permission';
 
@@ -130,9 +130,9 @@ class MyComponent extends Component {
 }
 ```
 
-Component's permissions with hook
+Component's permissions with denied callback.
 ```jsx
-@permission([1,2,3], (permission, element, index) => {
+@permission([1,2,3], (requiredPermission, element, index) => {
     // handle denied
 })
 class MyComponent extends Component {
@@ -174,7 +174,7 @@ var Permission = withPermission((props) => {
 }, [1, 2, 3]);
 ```
 
-Function Component with Hook.
+Function Component with denied callback.
 ```jsx
 var Permission = withPermission((props) => {
     return (
@@ -183,7 +183,7 @@ var Permission = withPermission((props) => {
             <a permission="2" href="#">Hello 2 </a>
         </p>
     );
-}, (permission, element, index) => {
+}, (requiredPermission, element, index) => {
     // handle denied
 });
 // or
@@ -194,7 +194,7 @@ var Permission = withPermission((props) => {
             <a permission="2" href="#">Hello 2 </a>
         </p>
     );
-}, [1, 2, 3], (permission, element, index) => {
+}, [1, 2, 3], (requiredPermission, element, index) => {
     // handle denied
 });
 ```
