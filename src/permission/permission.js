@@ -256,11 +256,14 @@ permission.getUserPermissions = function() {
 };
 
 permission.getUserPermissionsAsync = function(cb) {
-    if (_userPromise) {
-        _userPromise.then((data) => {
-            cb(handleUserPermissions(data));
-        }, cb);
-    } else {
-        cb(_userPermissions);
-    }
+    // 延迟到下一个宏任务执行, 确保异步保存可以拿到数据
+    setTimeout(() => {
+        if (_userPromise) {
+            _userPromise.then((data) => {
+                cb(handleUserPermissions(data));
+            }, cb);
+        } else {
+            cb(_userPermissions);
+        }
+    }, 0);
 };

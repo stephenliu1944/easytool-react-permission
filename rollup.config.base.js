@@ -49,7 +49,7 @@ export default function(fileName) {
                     namedExports: {
                         'node_modules/react-dom/index.js': ['render'],
                         // 'node_modules/react/react.js': ['Component', 'Children']     // v15
-                        'node_modules/react/index.js': ['Component', 'Children']        // v16
+                        'node_modules/react/index.js': ['Component', 'Children', 'useState']        // v16
                     }
                 }
             ), 

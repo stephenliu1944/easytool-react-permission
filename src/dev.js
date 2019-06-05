@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useState } from 'react';
 import { render } from 'react-dom';
 import permission, { setUserPermissions, withPermission } from './index';
 
@@ -7,6 +7,10 @@ permission.settings({
     transformData(data) {
         return data;
     }
+});
+
+permission.getUserPermissionsAsync((p) => {
+    console.log('UserPermissions: ', p);
 });
 
 var promise = new Promise((resolve, reject) => {
@@ -168,7 +172,7 @@ function SubComponent3(props) {
     );
 }
 
-var T = withPermission((props) => {
+var Wrapper = withPermission((props) => {
     return (
         <p id="1" name="P">
             <a permission="1" href="#">Hello1 </a>
@@ -177,13 +181,25 @@ var T = withPermission((props) => {
     );
 });
 
+var WrapperHooks = withPermission((props) => {
+    // Declare a new state variable, which we'll call "count"
+    const [count, setCount] = useState(0);
+
+    return (
+        <div>
+            <p data-permission="444">You clicked {count} times</p>
+            <button onClick={() => setCount(count + 1)}>
+        Click me
+            </button>
+        </div>
+    );
+});
+
 render(
-    <MyComponent />,
+    <Wrapper />,
     document.getElementById('app')
 );
 
-permission.setUserPermissions([1, 2, 'A']);
+permission.setUserPermissions([1, 2, 3]);
+// promise
 
-permission.getUserPermissionsAsync((p) => {
-    console.log('UserPermissions: ', p);
-});
