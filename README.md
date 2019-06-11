@@ -1,14 +1,14 @@
-# @beanreact/permission
-Happy to handle React Component permissions.
+# react-access-permission
+Easy to control react component permissions.
 
 ## Install
 ```
-npm install -S @beanreact/permission
+npm install -S react-access-permission
 ```
 
 ## Usage
 ```jsx
-import permission from '@beanreact/permission';
+import permission from 'react-access-permission';
 // 1. Set user's permissions.
 permission.setGlobalPermissions(['a', 'b', 'c']);
 
@@ -39,7 +39,7 @@ render(
 #### setGlobalPermissions()  
 Sync to set User's permissions, method receive number, string or array args.
 ```js
-import permission from '@beanreact/permission';
+import permission from 'react-access-permission';
 // number
 permission.setGlobalPermissions(1);
 // or string
@@ -53,7 +53,7 @@ permission.setGlobalPermissions(['a', 'b', 'c']);
 #### setGlobalPermissionsAsync()  
 Async to set User's permissions. method receive a Promise instance.
 ```js
-import permission from '@beanreact/permission';
+import permission from 'react-access-permission';
 // or even promise
 var promise = new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -83,7 +83,7 @@ permission.getGlobalPermissionsAsync((userPermissions) => {
 ### Set Element's permissions.
 It means User need to have these permissions which is elements set, then them will activate in this Component.
 ```jsx
-import permission from '@beanreact/permission';
+import permission from 'react-access-permission';
 
 @permission()
 class MyComponent extends Component {
@@ -115,7 +115,7 @@ class MyComponent extends Component {
 ### Set Component's permissions.
 It means User need to have these permissions to use this Components.
 ```jsx
-import permission from '@beanreact/permission';
+import permission from 'react-access-permission';
 
 @permission([1,2,3])
 class MyComponent extends Component {
@@ -143,7 +143,7 @@ class MyComponent extends Component {
 ### Set Function Component's permissions.
 withPermission method is use for Function Component.
 ```jsx
-import { setGlobalPermissions, withPermission } from '@beanreact/permission';
+import { setGlobalPermissions, withPermission } from 'react-access-permission';
 
 setGlobalPermissions('1, 2, 3');
 
@@ -201,7 +201,7 @@ var Permission = withPermission((props) => {
 
 ### Handle denied.
 ```jsx
-import permission, { setGlobalPermissions } from '@beanreact/permission';
+import permission, { setGlobalPermissions } from 'react-access-permission';
 
 setGlobalPermissions('3');
 
@@ -232,7 +232,7 @@ class MyComponent extends Component {
 
 ### Set Default options.
 ```jsx
-import permission from '@beanreact/permission';
+import permission from 'react-access-permission';
 
 permission.settings({
     transformData(data) {
