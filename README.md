@@ -10,7 +10,7 @@ npm install -S @beanreact/permission
 ```jsx
 import permission from '@beanreact/permission';
 // 1. Set user's permissions.
-permission.setUserPermissions(['a', 'b', 'c']);
+permission.setGlobalPermissions(['a', 'b', 'c']);
 
 // 2. Add annotation on Component.
 @permission()
@@ -36,21 +36,21 @@ render(
 ```
 
 ### Set User's permissions.  
-#### setUserPermissions()  
+#### setGlobalPermissions()  
 Sync to set User's permissions, method receive number, string or array args.
 ```js
 import permission from '@beanreact/permission';
 // number
-permission.setUserPermissions(1);
+permission.setGlobalPermissions(1);
 // or string
-permission.setUserPermissions('1');
+permission.setGlobalPermissions('1');
 // or string with dot
-permission.setUserPermissions('1, 2, 3');
+permission.setGlobalPermissions('1, 2, 3');
 // or array
-permission.setUserPermissions(['a', 'b', 'c']);
+permission.setGlobalPermissions(['a', 'b', 'c']);
 ```
 
-#### setUserPermissionsAsync()  
+#### setGlobalPermissionsAsync()  
 Async to set User's permissions. method receive a Promise instance.
 ```js
 import permission from '@beanreact/permission';
@@ -62,20 +62,20 @@ var promise = new Promise((resolve, reject) => {
         reject('error');
     }, 5000);
 });
-permission.setUserPermissionsAsync(promise);
+permission.setGlobalPermissionsAsync(promise);
 ```
 
 ### Get User's permissions.  
-#### getUserPermissions()  
+#### getGlobalPermissions()  
 Sync to get userPermissions data.
 ```js
-var userPermissions = permission.getUserPermissions();
+var userPermissions = permission.getGlobalPermissions();
 ```
 
-#### getUserPermissionsAsync()  
-Async to get userPermissions data. If you use setUserPermissionsAsync() method to set user's permissions, you better to use this method to get userPermissions data.
+#### getGlobalPermissionsAsync()  
+Async to get userPermissions data. If you use setGlobalPermissionsAsync() method to set user's permissions, you better to use this method to get userPermissions data.
 ```js
-permission.getUserPermissionsAsync((userPermissions) => {
+permission.getGlobalPermissionsAsync((userPermissions) => {
     console.log(userPermissions);
 });
 ```
@@ -143,9 +143,9 @@ class MyComponent extends Component {
 ### Set Function Component's permissions.
 withPermission method is use for Function Component.
 ```jsx
-import { setUserPermissions, withPermission } from '@beanreact/permission';
+import { setGlobalPermissions, withPermission } from '@beanreact/permission';
 
-setUserPermissions('1, 2, 3');
+setGlobalPermissions('1, 2, 3');
 
 var Permission = withPermission((props) => {
     return (
@@ -201,9 +201,9 @@ var Permission = withPermission((props) => {
 
 ### Handle denied.
 ```jsx
-import permission, { setUserPermissions } from '@beanreact/permission';
+import permission, { setGlobalPermissions } from '@beanreact/permission';
 
-setUserPermissions('3');
+setGlobalPermissions('3');
 
 @permission((requiredPermission, deniedElement, index) => {
     if (requiredPermission === 1) {
@@ -261,32 +261,32 @@ permission(permissions, onDenied)
  * @desc set global permissions for user.
  * @param { number | string | array } permissions set user's permissions.
  */
-permission.setUserPermissions(permissions)
+permission.setGlobalPermissions(permissions)
 
 /**
  * @desc async to set global permissions for user.
  * @param { promise } promise a promise instance to async receive user's permissions.
  */
-permission.setUserPermissionsAsync(promise)
+permission.setGlobalPermissionsAsync(promise)
 
 /**
  * @desc sync to get user's permissions.
  * @return user's permissions.
  */
-permission.getUserPermissions(permissions)
+permission.getGlobalPermissions(permissions)
 
 /**
  * @desc async to get user's permissions.
  * @param { function } callback method receive a param that is userPermissions data.
  */
-permission.getUserPermissionsAsync(callback)
+permission.getGlobalPermissionsAsync(callback)
 
 /**
  * @desc
  * @param { object } options set default options.
  * @param { function } options.comparePermission custom compare function, receive(requiredPermissions, userPermissions). return true means authorized, false means denied.
  * @param { function } options.onDenied custom global onDenied, recieve(requiredPermissions, deniedElement, index).
- * @param { function } options.transformData will transform setUserPermissions's data,, default null.
+ * @param { function } options.transformData will transform setGlobalPermissions's data,, default null.
  */
 permission.settings(options)
 

@@ -78,7 +78,7 @@ function handleDeniedHook(permission, element, onDenied, index = 0) {
         return;
     }
 
-    // TODO: 这里可能会有性能问题, 如果是 reactClass 需要调用 componentWillUnmount()
+    // TODO: 这里可能会有性能问题, 如果 onDenied 方法直接执行页面跳转, 可能来不及清除内存占用.
     var newElement = onDenied && onDenied(permission, element, index);
 
     if (React.isValidElement(newElement)) {        
@@ -115,7 +115,9 @@ function filterPermission(element, userPermissions, onDenied, index) {
             // children 为数组时 react会检测 key 是否为空, 为空会报警告.
             if (newChildren.length === 0) {
                 newChildren = null;
-            } else if (newChildren.length === 1) {
+            // 确保 newChildren 和 children 数据类型保持一致(object 或 array), 如果类型被修改, 
+            // 会导致 react 以为子组件被替换了, 将卸载已 render 的子组件(componentWillUnmount)并且重新渲染新的子组件(componentDidMount).
+            } else if (newChildren.length === 1 && children.length === 1) {
                 newChildren = newChildren[0];
             }
 
@@ -143,7 +145,7 @@ function filterPermission(element, userPermissions, onDenied, index) {
     return element;
 }
 
-function updateComponents(componentQueue = []) {
+function updateQueue(componentQueue = []) {
     var component;
     while (component = componentQueue.shift()) {
         component.forceUpdate();
@@ -200,7 +202,7 @@ export function permission(permissions, onDenied) {
                     case AUTHORIZED: // 认证通过
                         var originElement = super.render();   
                         // 校验子组件是否满足权限
-                        newElement = filterPermission(originElement, _userPermissions, _onDenied);
+                        newElement = filterPermission(originElement, _userPermissions, _onDenied);                        
                         break;
                     case DENIED:     // 拒绝
                         // 调用 denied 回调方法
@@ -220,28 +222,28 @@ permission.settings = function(options) {
 };
 
 // 设置用户权限
-permission.setUserPermissions = function(permissions) {
+permission.setGlobalPermissions = function(permissions) {
     _userPermissions = handleUserPermissions(permissions);
     // 用户权限设置完成
     _userStatus = UserStatus.DONE;
     // 拿到用户权限后刷新队列里的组件, 重新检测它们的权限
     if (isNotEmpty(_updateComponentQueue)) {
-        updateComponents(_updateComponentQueue);
+        updateQueue(_updateComponentQueue);
     }
 };
 
 // lazy load
-permission.setUserPermissionsAsync = function(permissions) {
+permission.setGlobalPermissionsAsync = function(permissions) {
     if (isPromise(permissions)) {
         _userPromise = permissions;
         // 用户权限状态改为 pending 状态
         _userStatus = UserStatus.PENDING;
 
         _userPromise.then((data) => {
-            permission.setUserPermissions(data);
+            permission.setGlobalPermissions(data);
         }, (error) => {
             // 设置出错恢复到未设置状态
-            _userStatus = UserStatus.UNSET;
+            _userStatus = UserStatus.ERROR;
             _userPermissions = null;
             throw new SetPermissionException(error);
         }).finally(() => {
@@ -251,11 +253,11 @@ permission.setUserPermissionsAsync = function(permissions) {
     } 
 };
 
-permission.getUserPermissions = function() {
+permission.getGlobalPermissions = function() {
     return _userPermissions;
 };
 
-permission.getUserPermissionsAsync = function(cb) {
+permission.getGlobalPermissionsAsync = function(cb) {
     // 延迟到下一个宏任务执行, 确保异步保存可以拿到数据
     setTimeout(() => {
         if (_userPromise) {

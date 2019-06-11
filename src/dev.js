@@ -1,6 +1,6 @@
 import React, { Component, useState } from 'react';
 import { render } from 'react-dom';
-import permission, { setUserPermissions, withPermission } from './index';
+import permission, { setGlobalPermissions, withPermission } from './index';
 
 var key = 0;
 permission.settings({
@@ -9,7 +9,7 @@ permission.settings({
     }
 });
 
-permission.getUserPermissionsAsync((p) => {
+permission.getGlobalPermissionsAsync((p) => {
     console.log('UserPermissions: ', p);
 });
 
@@ -200,6 +200,6 @@ render(
     document.getElementById('app')
 );
 
-permission.setUserPermissions([1, 2, 3]);
+permission.setGlobalPermissions([1, 2, 3]);
 // promise
 

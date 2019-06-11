@@ -1,13 +1,13 @@
 import { permission } from './permission';
 import { withPermission } from './wrapper';
 
-var { setUserPermissions, setUserPermissionsAsync, getUserPermissions, getUserPermissionsAsync } = permission;
+var { setGlobalPermissions, setGlobalPermissionsAsync, getGlobalPermissions, getGlobalPermissionsAsync } = permission;
 
 export {
-    setUserPermissions,
-    setUserPermissionsAsync,
-    getUserPermissions,
-    getUserPermissionsAsync,
+    setGlobalPermissions,
+    setGlobalPermissionsAsync,
+    getGlobalPermissions,
+    getGlobalPermissionsAsync,
     withPermission
 };
 
