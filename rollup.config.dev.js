@@ -25,7 +25,7 @@ export default rollupMerge(base(), {
             historyApiFallback: 'index.html'
         }),
         htmlTemplate({
-            template: 'src/template.html',
+            template: 'test/template.html',
             target: 'index.html'
         })
     ]

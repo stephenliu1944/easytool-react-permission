@@ -1,14 +1,14 @@
-# react-access-permission
+# @middlend/react-permission
 Easy to control react component permissions.
 
 ## Install
 ```
-npm install -S react-access-permission
+npm install -S @middlend/react-permission
 ```
 
 ## Usage
 ```jsx
-import permission from 'react-access-permission';
+import permission from '@middlend/react-permission';
 // 1. Set user's permissions.
 permission.setGlobalPermissions(['a', 'b', 'c']);
 
@@ -27,19 +27,13 @@ class MyComponent extends Component {
         );
     }
 }
-
-// 3. Use the Component.
-render(
-    <MyComponent />,
-    document.getElementById('app')
-);
 ```
 
 ### Set User's permissions.  
 #### setGlobalPermissions()  
 Sync to set User's permissions, method receive number, string or array args.
 ```js
-import permission from 'react-access-permission';
+import permission from '@middlend/react-permission';
 // number
 permission.setGlobalPermissions(1);
 // or string
@@ -50,10 +44,10 @@ permission.setGlobalPermissions('1, 2, 3');
 permission.setGlobalPermissions(['a', 'b', 'c']);
 ```
 
-#### setGlobalPermissionsAsync()  
+#### setGlobalPermissionsPromise()  
 Async to set User's permissions. method receive a Promise instance.
 ```js
-import permission from 'react-access-permission';
+import permission from '@middlend/react-permission';
 // or even promise
 var promise = new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -62,7 +56,7 @@ var promise = new Promise((resolve, reject) => {
         reject('error');
     }, 5000);
 });
-permission.setGlobalPermissionsAsync(promise);
+permission.setGlobalPermissionsPromise(promise);
 ```
 
 ### Get User's permissions.  
@@ -72,10 +66,10 @@ Sync to get userPermissions data.
 var userPermissions = permission.getGlobalPermissions();
 ```
 
-#### getGlobalPermissionsAsync()  
-Async to get userPermissions data. If you use setGlobalPermissionsAsync() method to set user's permissions, you better to use this method to get userPermissions data.
+#### getGlobalPermissionsPromise()  
+Async to get userPermissions data. If you use setGlobalPermissionsPromise() method to set user's permissions, you better to use this method to get userPermissions data.
 ```js
-permission.getGlobalPermissionsAsync((userPermissions) => {
+permission.getGlobalPermissionsPromise().then(userPermissions => {
     console.log(userPermissions);
 });
 ```
@@ -83,7 +77,7 @@ permission.getGlobalPermissionsAsync((userPermissions) => {
 ### Set Element's permissions.
 It means User need to have these permissions which is elements set, then them will activate in this Component.
 ```jsx
-import permission from 'react-access-permission';
+import permission from '@middlend/react-permission';
 
 @permission()
 class MyComponent extends Component {
@@ -115,7 +109,7 @@ class MyComponent extends Component {
 ### Set Component's permissions.
 It means User need to have these permissions to use this Components.
 ```jsx
-import permission from 'react-access-permission';
+import permission from '@middlend/react-permission';
 
 @permission([1,2,3])
 class MyComponent extends Component {
@@ -140,10 +134,11 @@ class MyComponent extends Component {
 }
 ```
 
-### Set Function Component's permissions.
-withPermission method is use for Function Component.
+### Function Component.
+withPermission method is use for Function Component.  
+Set Function Component's children permissions.
 ```jsx
-import { setGlobalPermissions, withPermission } from 'react-access-permission';
+import { setGlobalPermissions, withPermission } from '@middlend/react-permission';
 
 setGlobalPermissions('1, 2, 3');
 
@@ -201,7 +196,7 @@ var Permission = withPermission((props) => {
 
 ### Handle denied.
 ```jsx
-import permission, { setGlobalPermissions } from 'react-access-permission';
+import permission, { setGlobalPermissions } from '@middlend/react-permission';
 
 setGlobalPermissions('3');
 
@@ -232,7 +227,7 @@ class MyComponent extends Component {
 
 ### Set Default options.
 ```jsx
-import permission from 'react-access-permission';
+import permission from '@middlend/react-permission';
 
 permission.settings({
     transformData(data) {
@@ -267,7 +262,7 @@ permission.setGlobalPermissions(permissions)
  * @desc async to set global permissions for user.
  * @param { promise } promise a promise instance to async receive user's permissions.
  */
-permission.setGlobalPermissionsAsync(promise)
+permission.setGlobalPermissionsPromise(promise)
 
 /**
  * @desc sync to get user's permissions.
@@ -277,9 +272,9 @@ permission.getGlobalPermissions(permissions)
 
 /**
  * @desc async to get user's permissions.
- * @param { function } callback method receive a param that is userPermissions data.
+ * @return Promise instance that receive user's permissions.
  */
-permission.getGlobalPermissionsAsync(callback)
+permission.getGlobalPermissionsPromise()
 
 /**
  * @desc
