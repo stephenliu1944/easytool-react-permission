@@ -233,9 +233,9 @@ permission.setGlobalPermissions = function(permissions) {
 };
 
 // lazy load
-permission.setGlobalPermissionsAsync = function(permissions) {
-    if (isPromise(permissions)) {
-        _userPromise = permissions;
+permission.setGlobalPermissionsPromise = function(permissionPromise) {
+    if (isPromise(permissionPromise)) {
+        _userPromise = permissionPromise;
         // 用户权限状态改为 pending 状态
         _userStatus = UserStatus.PENDING;
 
@@ -257,15 +257,15 @@ permission.getGlobalPermissions = function() {
     return _userPermissions;
 };
 
-permission.getGlobalPermissionsAsync = function(cb) {
-    // 延迟到下一个宏任务执行, 确保异步保存可以拿到数据
-    setTimeout(() => {
-        if (_userPromise) {
-            _userPromise.then((data) => {
-                cb(handleUserPermissions(data));
-            }, cb);
-        } else {
-            cb(_userPermissions);
-        }
-    }, 0);
+permission.getGlobalPermissionsPromise = function() {
+    return new Promise((resolve, reject) => {
+        // 延迟到下一个宏任务执行, 确保异步保存可以拿到数据
+        setTimeout(() => {
+            if (_userPromise) {
+                _userPromise.then(data => resolve(handleUserPermissions(data)), reject);
+            } else {
+                resolve(_userPermissions);
+            }
+        }, 0);
+    });
 };

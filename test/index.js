@@ -1,6 +1,6 @@
 import React, { Component, useState } from 'react';
 import { render } from 'react-dom';
-import permission, { setGlobalPermissions, withPermission } from './index';
+import permission, { setGlobalPermissions, withPermission } from '../src/index';
 
 var key = 0;
 permission.settings({
@@ -9,14 +9,8 @@ permission.settings({
     }
 });
 
-permission.getGlobalPermissionsAsync((p) => {
-    console.log('UserPermissions: ', p);
-});
-
-var promise = new Promise((resolve, reject) => {
-    setTimeout(() => {
-        resolve([1, 2, 'A']);
-    }, 3000);
+permission.getGlobalPermissionsPromise().then((p) => {
+    console.log('UserPermissions Promise: ', p);
 });
 
 @permission((num, el, index) => {
@@ -200,6 +194,16 @@ render(
     document.getElementById('app')
 );
 
-permission.setGlobalPermissions([1, 2, 3]);
-// promise
+/**
+ * 设置权限
+ */
+// 同步
+// permission.setGlobalPermissions([1, 2, 3]);
+// 异步
+var promise = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        resolve([1, 2, 'A']);
+    }, 3000);
+});
+permission.setGlobalPermissionsPromise(promise);
 

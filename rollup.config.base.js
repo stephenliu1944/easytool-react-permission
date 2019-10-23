@@ -29,7 +29,7 @@ export function rollupMerge(source1 = {}, source2 = {}) {
 
 export default function(fileName) {
     return {
-        input: `src/${ isDEV ? 'dev' : 'index' }.js`,
+        input: `${ isDEV ? 'test' : 'src' }/index.js`,
         external: !isDEV && ['react', 'react-dom'],      // 打包时排除外部依赖包
         plugins: [
             del({
