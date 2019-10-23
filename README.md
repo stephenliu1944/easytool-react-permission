@@ -1,14 +1,14 @@
-# @middlend/react-permission
+# @easytool/react-permission
 Easy to control react component permissions.
 
 ## Install
 ```
-npm install -S @middlend/react-permission
+npm install -S @easytool/react-permission
 ```
 
 ## Usage
 ```jsx
-import permission from '@middlend/react-permission';
+import permission from '@easytool/react-permission';
 // 1. Set user's permissions.
 permission.setGlobalPermissions(['a', 'b', 'c']);
 
@@ -33,7 +33,7 @@ class MyComponent extends Component {
 #### setGlobalPermissions()  
 Sync to set User's permissions, method receive number, string or array args.
 ```js
-import permission from '@middlend/react-permission';
+import permission from '@easytool/react-permission';
 // number
 permission.setGlobalPermissions(1);
 // or string
@@ -47,7 +47,7 @@ permission.setGlobalPermissions(['a', 'b', 'c']);
 #### setGlobalPermissionsPromise()  
 Async to set User's permissions. method receive a Promise instance.
 ```js
-import permission from '@middlend/react-permission';
+import permission from '@easytool/react-permission';
 // or even promise
 var promise = new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -77,7 +77,7 @@ permission.getGlobalPermissionsPromise().then(userPermissions => {
 ### Set Element's permissions.
 It means User need to have these permissions which is elements set, then them will activate in this Component.
 ```jsx
-import permission from '@middlend/react-permission';
+import permission from '@easytool/react-permission';
 
 @permission()
 class MyComponent extends Component {
@@ -109,7 +109,7 @@ class MyComponent extends Component {
 ### Set Component's permissions.
 It means User need to have these permissions to use this Components.
 ```jsx
-import permission from '@middlend/react-permission';
+import permission from '@easytool/react-permission';
 
 @permission([1,2,3])
 class MyComponent extends Component {
@@ -138,7 +138,7 @@ class MyComponent extends Component {
 withPermission method is use for Function Component.  
 Set Function Component's children permissions.
 ```jsx
-import { setGlobalPermissions, withPermission } from '@middlend/react-permission';
+import { setGlobalPermissions, withPermission } from '@easytool/react-permission';
 
 setGlobalPermissions('1, 2, 3');
 
@@ -196,7 +196,7 @@ var Permission = withPermission((props) => {
 
 ### Handle denied.
 ```jsx
-import permission, { setGlobalPermissions } from '@middlend/react-permission';
+import permission, { setGlobalPermissions } from '@easytool/react-permission';
 
 setGlobalPermissions('3');
 
@@ -227,7 +227,7 @@ class MyComponent extends Component {
 
 ### Set Default options.
 ```jsx
-import permission from '@middlend/react-permission';
+import permission from '@easytool/react-permission';
 
 permission.settings({
     transformData(data) {

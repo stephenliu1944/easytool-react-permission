@@ -1,5 +1,5 @@
 {
-  "name": "@middlend/react-permission",
+  "name": "@easytool/react-permission",
   "version": "0.1.1",
   "description": "Easy to control react component permissions.",
   "main": "dist/index.cjs.js",
