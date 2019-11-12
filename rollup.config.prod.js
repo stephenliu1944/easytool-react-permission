@@ -2,7 +2,6 @@ import { uglify } from 'rollup-plugin-uglify';
 import base, { rollupMerge } from './rollup.config.base';
 import pkg from './package.json';
 
-const BUILD_PATH = process.env.BUILD_PATH || 'build';
 var { main, module, browser, libraryName } = pkg;
 var cjsName = main.split('/')[1];
 var esmName = module.split('/')[1];
@@ -10,21 +9,25 @@ var umdName = browser.split('/')[1];
 
 export default [rollupMerge(base(umdName), {
     output: {
-        file: `${BUILD_PATH}/${umdName}`,
         format: 'umd',
-        name: libraryName
+        sourcemap: true,
+        name: libraryName,
+        exports: 'named',    // 如果本库既包含命名导出又包含默认导出则使用'named'参数(if you use named exports but also have a default export use 'named').
+        globals: {           // for external imports
+            react: 'React',
+            'react-dom': 'ReactDOM'
+        }
     },
     plugins: [
         uglify()	                     
     ]
 }), rollupMerge(base(cjsName), {
     output: {
-        file: `${BUILD_PATH}/${cjsName}`,
-        format: 'cjs'
+        format: 'cjs',
+        exports: 'named'    // 如果本库既包含命名导出又包含默认导出则使用'named'参数(if you use named exports but also have a default export use 'named').
     }
 }), rollupMerge(base(esmName), {
     output: {
-        file: `${BUILD_PATH}/${esmName}`,
         format: 'es'
     }
 })];

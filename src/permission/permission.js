@@ -9,7 +9,7 @@ var _userStatus = UserStatus.UNSET;
 var _userPromise;
 var _userPermissions;
 var _updateComponentQueue = [];
-var _defaults = {
+var _settings = {
     onDenied: null,
     transformData: null,
     comparePermission(requiredPermissions = [], userPermissions = []) {
@@ -42,9 +42,9 @@ function generateKey(element, index = 0) {
     return `permission__${index}`;
 }
 
-function checkPermission(permissions, userPermissions) {
-    // 必要的权限
-    if (isEmpty(permissions)) {
+function checkElementPermission(elementPermissions, userPermissions) {
+    // 元素需要的权限
+    if (isEmpty(elementPermissions)) {
         return true;
     }
 
@@ -53,17 +53,39 @@ function checkPermission(permissions, userPermissions) {
         return false;
     }
 
-    var requiredPermissions = formatPermissionValue(permissions);
+    var requiredPermissions = formatPermissionValue(elementPermissions);
 
-    return _defaults.comparePermission(requiredPermissions, userPermissions);
+    return _settings.comparePermission(requiredPermissions, userPermissions);
+}
+
+function checkChildrenPermission(children, userPermissions, onDenied) {
+    let newChildren = [];
+    
+    if (children) {
+        Children.forEach(children, (child, _index) => {
+            let checkedChild = filterPermission(child, userPermissions, onDenied, _index);
+            checkedChild && newChildren.push(checkedChild);
+        });
+    }
+    
+    // children 为数组时 react会检测 key 是否为空, 为空会报警告.
+    if (newChildren.length === 0) {
+        newChildren = null;
+    // 确保 newChildren 和 children 数据类型保持一致(object 或 array), 如果类型被修改, 
+    // 会导致 react 以为子组件被替换了, 将卸载已 render 的子组件(componentWillUnmount)并且重新渲染新的子组件(componentDidMount).
+    } else if (newChildren.length === 1 && children.length === 1) {
+        newChildren = newChildren[0];
+    }
+
+    return newChildren;
 }
 
 // 接收到用户的权限数据后进行处理
 function handleUserPermissions(data) {
     var _permissions;
             
-    if (_defaults.transformData) {
-        _permissions = _defaults.transformData(data);
+    if (_settings.transformData) {
+        _permissions = _settings.transformData(data);
     } else {
         _permissions = data;
     }
@@ -101,28 +123,11 @@ function filterPermission(element, userPermissions, onDenied, index) {
         var permission = element.props['data-permission'] || element.props['data-permissions'] || element.props['permission'] || element.props['permissions'];
         
         // TODO: 返回缺失的权限数组
-        if (checkPermission(permission, userPermissions)) {
-            let newChildren = [];
+        if (checkElementPermission(permission, userPermissions)) {
             let { children } = element.props;
-
-            if (children) {
-                Children.forEach(children, (child, _index) => {
-                    let checkedChild = filterPermission(child, userPermissions, onDenied, _index);
-                    checkedChild && newChildren.push(checkedChild);
-                });
-            }
-            
-            // children 为数组时 react会检测 key 是否为空, 为空会报警告.
-            if (newChildren.length === 0) {
-                newChildren = null;
-            // 确保 newChildren 和 children 数据类型保持一致(object 或 array), 如果类型被修改, 
-            // 会导致 react 以为子组件被替换了, 将卸载已 render 的子组件(componentWillUnmount)并且重新渲染新的子组件(componentDidMount).
-            } else if (newChildren.length === 1 && children.length === 1) {
-                newChildren = newChildren[0];
-            }
-
+            let newChildren = checkChildrenPermission(children, userPermissions, onDenied);
             // cloneElement(element, props, children), 第二个, 第三个参数用于覆盖拷贝的 element 属性, 如果不输入默认使用原 element 的.
-            // key and ref from the original element will be preserved. 第二个参数可以覆盖 key 和 ref.
+            // key and ref from the original element will be preserved.
             let newElement = React.cloneElement(element, {
                 key: element.key || generateKey(element, index)       
             }, newChildren);    
@@ -166,7 +171,7 @@ export function permission(permissions, onDenied) {
 
     // 为 null 表示用户不想使用回调, 包括默认的 onDenied
     if (!_onDenied && _onDenied !== null) {
-        _onDenied = _defaults.onDenied;
+        _onDenied = _settings.onDenied;
     }
 
     return function(WrappedComponent) {
@@ -196,8 +201,8 @@ export function permission(permissions, onDenied) {
                 var newElement = null;
                 var { AUTHORIZED, DENIED } = CheckStatus;
                 // 校验当前 Component 是否满足权限
-                var status = checkPermission(_permissions, _userPermissions) ? AUTHORIZED : DENIED;
-                
+                var status = checkElementPermission(_permissions, _userPermissions) ? AUTHORIZED : DENIED;
+                                
                 switch (status) {
                     case AUTHORIZED: // 认证通过
                         var originElement = super.render();   
@@ -218,7 +223,7 @@ export function permission(permissions, onDenied) {
 
 // 设置默认配置
 permission.settings = function(options) {
-    Object.assign(_defaults, options); 
+    Object.assign(_settings, options); 
 };
 
 // 设置用户权限

@@ -39,7 +39,6 @@ module.exports = function(api) {
                     modules: false // transform esm to cjs, false to keep esm.
                 }]
             );
-            plugins.push('@babel/plugin-external-helpers');
             break;
         case ENV.TEST:
             presets.push('@babel/preset-env');
