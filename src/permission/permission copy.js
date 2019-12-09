@@ -1,5 +1,4 @@
-import PropTypes from 'prop-types';
-import React, { Component, Children } from 'react';
+import React, { Children } from 'react';
 import { UserStatus, CheckStatus } from 'constants/enum';
 import SetPermissionException from 'exceptions/SetPermissionException';
 import { isEmpty, isNotEmpty, isArray, isPromise, trim } from 'utils/common';
@@ -174,82 +173,52 @@ export function permission(permissions, onDenied) {
     if (!_onDenied && _onDenied !== null) {
         _onDenied = _settings.onDenied;
     }
-}
 
-Permission.propTypes = {
-    hasPermision: PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.number,
-        PropTypes.array,
-        PropTypes.func
-    ]),
-    onDeny: PropTypes.func
-};
+    return function(WrappedComponent) {
+        
+        return class extends WrappedComponent {
+            
+            componentDidMount() {
+                super.componentDidMount && super.componentDidMount();
+                // TODO: 目前只能延迟刷新 Class Component, 考虑纯函数组件: Hooks 和 stateless Component
+                // 用户权限未加载完成时将组件加入刷新队列, 待用户权限加载后重新校验.
+                if (_userStatus !== UserStatus.DONE) {
+                    _updateComponentQueue.push(this);
+                }
+            }
 
-export default class Permission extends Component {
-    // 设置 props 默认值
-    static defaultProps = {
-        hasPermision: null,
-        onDeny: null
-    }
+            componentWillUnmount() {
+                // 组件被销毁时, 从更新队列中移除
+                var index = _updateComponentQueue.findIndex((component) => component === this);
+                if (index !== -1) {
+                    _updateComponentQueue.splice(index, 1);
+                }
 
-    state = {
-        status,
-        updateQueue,
-        hasPermission
-    }
+                super.componentWillUnmount && super.componentWillUnmount();
+            }
 
-    componentDidMount() {
-    }
+            render() {
+                var newElement = null;
+                var { AUTHORIZED, DENIED } = CheckStatus;
+                // 校验当前 Component 是否满足权限
+                var status = checkElementPermission(_permissions, _userPermissions) ? AUTHORIZED : DENIED;
+                                
+                switch (status) {
+                    case AUTHORIZED: // 认证通过
+                        var originElement = super.render();   
+                        // 校验子组件是否满足权限
+                        newElement = filterPermission(originElement, _userPermissions, _onDenied);                        
+                        break;
+                    case DENIED:     // 拒绝
+                        // 调用 denied 回调方法
+                        newElement = handleDeniedHook(_permissions, this, _onDenied);
+                        break;
+                }
 
-    componentWillUnmount() {
-    }
-
-    render() {
-        var { hasPermision, onDeny } = this.props;
-
-        return filterPermission(this.props.children, hasPermision, onDeny);
-    }
-    
-    componentDidMount() {
-        super.componentDidMount && super.componentDidMount();
-        // TODO: 目前只能延迟刷新 Class Component, 考虑纯函数组件: Hooks 和 stateless Component
-        // 用户权限未加载完成时将组件加入刷新队列, 待用户权限加载后重新校验.
-        if (_userStatus !== UserStatus.DONE) {
-            _updateComponentQueue.push(this);
-        }
-    }
-
-    componentWillUnmount() {
-        // 组件被销毁时, 从更新队列中移除
-        var index = _updateComponentQueue.findIndex((component) => component === this);
-        if (index !== -1) {
-            _updateComponentQueue.splice(index, 1);
-        }
-
-        super.componentWillUnmount && super.componentWillUnmount();
-    }
-
-    render() {
-        var newElement = null;
-        var { AUTHORIZED, DENIED } = CheckStatus;
-        // 校验当前 Component 是否满足权限
-        var status = checkElementPermission(_permissions, _userPermissions) ? AUTHORIZED : DENIED;
-                        
-        switch (status) {
-            case AUTHORIZED: // 认证通过
-                var originElement = super.render();   
-                // 校验子组件是否满足权限
-                newElement = filterPermission(originElement, _userPermissions, _onDenied);                        
-                break;
-            case DENIED:     // 拒绝
-                // 调用 denied 回调方法
-                newElement = handleDeniedHook(_permissions, this, _onDenied);
-                break;
-        }
-
-        return newElement || null;  // 不能返回 undefined, 要报错.
-    }
+                return newElement || null;  // 不能返回 undefined, 要报错.
+            }
+        };
+    };
 }
 
 // 设置默认配置
