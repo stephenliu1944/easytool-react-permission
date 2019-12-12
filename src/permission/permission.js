@@ -43,38 +43,33 @@ function generateKey(element, index = 0) {
     return `permission__${index}`;
 }
 
-function checkElementPermission(elementPermissions, userPermissions) {
-    // 元素需要的权限
-    if (isEmpty(elementPermissions)) {
+function checkElementPermission(element, props) {
+    var elementPermission = getElementPermission(element);
+
+    // 元素需要的权限, 空的表示不需要权限
+    if (isEmpty(elementPermission)) {
         return true;
     }
 
-    // 用户的权限
-    if (isEmpty(userPermissions)) {
+    var { hasPermission, compare } = props;
+
+    // 用户的权限, 空的表示没有权限或还没获取到权限
+    if (isEmpty(hasPermission)) {
         return false;
     }
 
-    var requiredPermissions = formatPermissionValue(elementPermissions);
+    elementPermission = formatPermissionValue(elementPermission);
 
-    return _settings.comparePermission(requiredPermissions, userPermissions);
+    return compare(elementPermission, hasPermission);
 }
 
-function checkChildrenPermission(children, userPermissions, onDenied) {
-    let newChildren = [];
-    
-    if (children) {
-        Children.forEach(children, (child, _index) => {
-            let checkedChild = filterPermission(child, userPermissions, onDenied, _index);
-            checkedChild && newChildren.push(checkedChild);
-        });
-    }
-    
+function handleChildren(newChildren, oldChildren) {
     // children 为数组时 react会检测 key 是否为空, 为空会报警告.
     if (newChildren.length === 0) {
         newChildren = null;
-    // 确保 newChildren 和 children 数据类型保持一致(object 或 array), 如果类型被修改, 
-    // 会导致 react 以为子组件被替换了, 将卸载已 render 的子组件(componentWillUnmount)并且重新渲染新的子组件(componentDidMount).
-    } else if (newChildren.length === 1 && children.length === 1) {
+        // 确保 newChildren 和 children 数据类型保持一致(object 或 array), 如果类型被修改, 
+        // 会导致 react 以为子组件被替换了, 将卸载已 render 的子组件(componentWillUnmount)并且重新渲染新的子组件(componentDidMount).
+    } else if (newChildren.length === 1 && oldChildren.length === 1) {
         newChildren = newChildren[0];
     }
 
@@ -95,24 +90,28 @@ function handleUserPermissions(data) {
     return formatPermissionValue(_permissions);
 }
 // TODO: index 默认值为0可能有问题
-function handleDeniedHook(permission, element, onDenied, index = 0) {
+function handleDeny(element, onDeny) {
     // 用户权限还未加载完成, 默认隐藏所有元素不显示, 不执行 onDenied 方法
-    if (_userStatus !== UserStatus.DONE) {
+    if (!onDeny || _userStatus !== UserStatus.DONE) {
         return;
     }
 
     // TODO: 这里可能会有性能问题, 如果 onDenied 方法直接执行页面跳转, 可能来不及清除内存占用.
-    var newElement = onDenied && onDenied(permission, element, index);
+    var newElement = onDeny(element);
 
     if (React.isValidElement(newElement)) {        
         return newElement;
     }
 
-    return;
+    throw 'onDeny return a invalid element.';
+}
+
+function getElementPermission(element = {}) {
+    return element.props['data-permission'] || element.props['data-permissions'] || element.props['permission'] || element.props['permissions'];
 }
 
 // 递归遍历 Virtual Tree
-function filterPermission(element, userPermissions, onDenied, index) {
+function filterElement(element, props, index) {
     if (!element) {
         return;
     }
@@ -121,31 +120,42 @@ function filterPermission(element, userPermissions, onDenied, index) {
     if (isReactDOMElement(element) 
             || isReactComponentElement(element)
             || isReactClass(element)) {
-        var permission = element.props['data-permission'] || element.props['data-permissions'] || element.props['permission'] || element.props['permissions'];
-        
         // TODO: 返回缺失的权限数组
-        if (checkElementPermission(permission, userPermissions)) {
+        if (checkElementPermission(element, props)) {
             let { children } = element.props;
-            let newChildren = checkChildrenPermission(children, userPermissions, onDenied);
+            // TODO: Children.count(null) 为不为0?
+            if (!children || Children.count(children) === 0) {
+                return element;
+            }
+            
+            let validChildren = filterElement(children, props, index);
+            let newChildren = handleChildren(validChildren, children);
             // cloneElement(element, props, children), 第二个, 第三个参数用于覆盖拷贝的 element 属性, 如果不输入默认使用原 element 的.
             // key and ref from the original element will be preserved.
             let newElement = React.cloneElement(element, {
-                key: element.key || generateKey(element, index)       
+                // key: element.key || generateKey(element, index)       
             }, newChildren);    
 
             // 返回权限过滤后的元素. 
             return newElement;
         } 
         
-        return handleDeniedHook(permission, element, onDenied, index);
+        return handleDeny(element, props, index);
     // 处理 Array
     } else if (isArray(element)
             || isReactFragment(element)
-            || isReactPortal(element)) {
-        
-        let _children = element?.props?.children || element.children || element;
+            || isReactPortal(element)) {        
+        let children = element?.props?.children || element.children || element;
+        let validChildren = [];     // 有效的子元素
 
-        return Children.map(_children, (el, _index) => filterPermission(el, userPermissions, onDenied, _index));
+        // 这里筛选出有效的子元素
+        Children.forEach(children, (child, _index) => {
+            // checkedChild 已校验过的子元素
+            let checkedChild = filterElement(child, props, _index);
+            checkedChild && validChildren.push(checkedChild);
+        });
+
+        return validChildren;
     }
     // 其他元素类型暂不处理
     return element;
@@ -206,11 +216,13 @@ export default class Permission extends Component {
     }
 
     render() {
-        var { hasPermision, onDeny } = this.props;
-
-        return filterPermission(this.props.children, hasPermision, onDeny);
+        return (
+            <>{ this.props.children.map((element, index) => filterElement(element, this.props, index)) }</>
+        );
     }
-    
+
+    // TODO: --------------------------------------------------------
+
     componentDidMount() {
         super.componentDidMount && super.componentDidMount();
         // TODO: 目前只能延迟刷新 Class Component, 考虑纯函数组件: Hooks 和 stateless Component
@@ -240,11 +252,11 @@ export default class Permission extends Component {
             case AUTHORIZED: // 认证通过
                 var originElement = super.render();   
                 // 校验子组件是否满足权限
-                newElement = filterPermission(originElement, _userPermissions, _onDenied);                        
+                newElement = filterElement(originElement, _userPermissions, _onDenied);                        
                 break;
             case DENIED:     // 拒绝
                 // 调用 denied 回调方法
-                newElement = handleDeniedHook(_permissions, this, _onDenied);
+                newElement = handleDeny(_permissions, this, _onDenied);
                 break;
         }
 
