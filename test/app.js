@@ -1,38 +1,11 @@
 import React, { Component, useState } from 'react';
 import { render } from 'react-dom';
 import { Table } from 'antd';
-import permission, { setGlobalPermissions, withPermission } from '../src/index';
+import Permission from '../src/index';
 
 var Column = Table.Column;
-permission.settings({
-    transformData(data) {
-        return data;
-    }
-});
 
-/**
- * 设置权限
- */
-// 同步
-// permission.setGlobalPermissions([1, 2, 3]);
-
-// 异步
-var promise = new Promise((resolve, reject) => {
-    setTimeout(() => {
-        resolve([1, 2, 'A']);
-    }, 3000);
-});
-permission.setGlobalPermissionsPromise(promise);
-
-// 异步获取权限
-permission.getGlobalPermissionsPromise().then((p) => {
-    console.log('UserPermissions Promise: ', p);
-});
-
-@permission((num, el, index) => {
-    return React.cloneElement(el, { key: index, style: { color: 'red' } });
-})
-class MyComponent extends Component {
+class Test1 extends Component {
 
     state = {
         data: [],
@@ -89,9 +62,7 @@ class MyComponent extends Component {
         );
     }
 } 
-
-@permission()
-class SubComponent1 extends Component {
+class Test2 extends Component {
     
     state =  {
         data: []
@@ -132,49 +103,34 @@ class SubComponent1 extends Component {
     }
 } 
 
-function SubComponent2(props) {
+function Test3(props) {
     return (
-        <div>
-            <h1>SubComponent2</h1>
-            { props.children }
+        <div permission="1">
+            <h1 permission="2">2</h1>
+            <h1 permission="3">3</h1>
         </div>
     );
 }
+// todo: test Hooks
 
-function SubComponent3(props) {
-    return (
-        <div>
-            <h1>SubComponent3</h1>
-            <p>deny</p>
-            { props.children }
-        </div>
-    );
-}
+/**
+ * 设置权限
+ */
+// 同步
+// permission.setGlobalPermissions([1, 2, 3]);
 
-var Wrapper = withPermission((props) => {
-    return (
-        <p id="1" name="P">
-            <a permission="1" href="#">Hello1 </a>
-            <a permission="2" href="#">HelloB </a>
-        </p>
-    );
+// 异步
+var promise = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        resolve([1, 2, 'A']);
+    }, 3000);
 });
 
-var WrapperHooks = withPermission((props) => {
-    // Declare a new state variable, which we'll call "count"
-    const [count, setCount] = useState(0);
-
-    return (
-        <div>
-            <p data-permission="444">You clicked {count} times</p>
-            <button onClick={() => setCount(count + 1)}>
-        Click me
-            </button>
-        </div>
-    );
-});
+// React.cloneElement(el, { key: index, style: { color: 'red' } });
 
 render(
-    <MyComponent />,
+    <Permission hasPermission={[1, 2, 3]}>
+        <Test3 />
+    </Permission>,
     document.getElementById('app')
 );

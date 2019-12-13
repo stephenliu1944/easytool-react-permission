@@ -27,6 +27,10 @@ export function isNumber(obj) {
     return _getClass(obj).toLowerCase() === 'number';
 }
 
+export function isPromise(obj) {
+    return !!obj && (typeof obj === 'object' || typeof obj === 'function') && typeof obj.then === 'function';
+}
+
 /**
  * @desc 判断参数是否为空, 包括null, undefined, [], '', {}
  * @param {object} obj 需判断的对象
@@ -80,10 +84,6 @@ export function isBlank(str) {
  */
 export function isNotBlank(obj) {
     return !isBlank(obj);
-}
-
-export function isPromise(obj) {
-    return typeof obj === 'object' && obj.then && obj.catch && obj.finally;
 }
 
 /**

@@ -1,6 +1,6 @@
 import { isArray, isString, isNumber } from 'utils/common';
 
-export function formatPermissionValue(value) {
+export function formatPermission(value) {
     var permissions = [];
 
     if (isArray(value)) {
