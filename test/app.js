@@ -140,13 +140,13 @@ var promise = new Promise((resolve, reject) => {
 
 render(
     <PermissionContext.Provider value={{ hasPermission: [1, 2] }}>
-        <Permission >
+        {/* <Permission >
             <div permission="1">
                 1
                 <h1 permission="2">2</h1>
                 <h1 permission="3">3</h1>
             </div>
-        </Permission>
+        </Permission> */}
         <Permission hasPermission={promise}>
             <div permission="1">
                 1
@@ -154,7 +154,7 @@ render(
                 <h1 permission="3">3</h1>
             </div>
         </Permission>
-        <Test1 />
+        {/* <Test1 /> */}
     </PermissionContext.Provider>,
     document.getElementById('app')
 );

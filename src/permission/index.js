@@ -153,12 +153,14 @@ export default function Permission(props) {
     }, useContext(PermissionContext), props);
 
     const [hasPermission, setHasPermission] = useState(isPromise(_props.hasPermission) ? null : _props.hasPermission);
-
+    
     useEffect(() => {
         if (isPromise(_props.hasPermission)) {
             _props.hasPermission.then((permision) => setHasPermission(permision), _props.onError);
+        } else {
+            setHasPermission(_props.hasPermission);
         }
-    }, [_props.hasPermission, hasPermission]);
+    }, [_props.hasPermission]);
 
     return filterElement(_props.children, hasPermission, _props);
 }
