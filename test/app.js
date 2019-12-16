@@ -1,7 +1,8 @@
-import React, { Component, useState } from 'react';
+import React, { Component, useContext } from 'react';
 import { render } from 'react-dom';
 import { Table } from 'antd';
-import Permission from '../src/index';
+import Permission, { PermissionContext } from '../src/index';
+import PropTypes from 'prop-types';
 
 var Column = Table.Column;
 
@@ -38,27 +39,29 @@ class Test1 extends Component {
                     address: '西湖区湖底公园3号'
                 }]
             });
-        }, 1000);
+        }, 5000);
     }
 
     render() {
         return (
-            <Table dataSource={this.state.dataSource} >
-                <Column
-                    title="住址"
-                    dataIndex="address"
-                    key="address"
-                    render={(text, record, index) => {
-                        // var Wrapper = RenderWrapper(
-                        //     <span permission={index + 1}>
-                        //         <a href="javascript:;">{text}</a>
-                        //     </span>
-                        // );
-                        // return <Wrapper />;
-                        return <span permission="A4">{text}</span>;
-                    }}
-                />
-            </Table>
+            <Permission hasPermission={promise}>
+                <Table dataSource={this.state.dataSource} permission="1">
+                    <Column
+                        title="住址"
+                        dataIndex="address"
+                        key="address"
+                        render={(text, record, index) => {
+                            return (
+                                <Permission hasPermission={promise} onDeny={(el) => <h1>没有权限</h1>}>
+                                    <span permission={index + 1}>{text}</span>
+                                </Permission>
+                            );
+                        }}
+                    />
+                </Table>
+                <div permission="2">2</div>
+                <div permission="3">3</div>
+            </Permission>
         );
     }
 } 
@@ -104,13 +107,20 @@ class Test2 extends Component {
 } 
 
 function Test3(props) {
+    var { value1 } = Object.assign({}, useContext(PermissionContext), props);
+    console.log(value1);
+    
     return (
         <div permission="1">
-            <h1 permission="2">2</h1>
             <h1 permission="3">3</h1>
         </div>
     );
 }
+
+Test3.propTypes = {
+    value1: PropTypes.object
+};
+
 // todo: test Hooks
 
 /**
@@ -129,8 +139,8 @@ var promise = new Promise((resolve, reject) => {
 // React.cloneElement(el, { key: index, style: { color: 'red' } });
 
 render(
-    <Permission hasPermission={[1, 2, 3]}>
+    <PermissionContext.Provider>
         <Test3 />
-    </Permission>,
+    </PermissionContext.Provider>,
     document.getElementById('app')
 );
