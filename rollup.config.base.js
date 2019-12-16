@@ -56,7 +56,7 @@ export default function(filename = 'index.js') {
             commonjs({
                 namedExports: DEV && {
                     'react-dom': ['render', 'createPortal', 'findDOMNode'],
-                    'react': ['Component', 'Children', 'useContext'],
+                    'react': ['Component', 'Children', ' useState', 'useEffect', 'useContext'],
                     'antd': ['Table', 'Column']
                 }
             })

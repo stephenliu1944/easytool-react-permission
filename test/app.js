@@ -44,15 +44,15 @@ class Test1 extends Component {
 
     render() {
         return (
-            <Permission hasPermission={promise}>
-                <Table dataSource={this.state.dataSource} permission="1">
+            <Permission>
+                <Table dataSource={this.state.dataSource} permission="4">
                     <Column
                         title="住址"
                         dataIndex="address"
                         key="address"
                         render={(text, record, index) => {
                             return (
-                                <Permission hasPermission={promise} onDeny={(el) => <h1>没有权限</h1>}>
+                                <Permission onDeny={(el) => <h1>没有权限</h1>}>
                                     <span permission={index + 1}>{text}</span>
                                 </Permission>
                             );
@@ -132,15 +132,29 @@ Test3.propTypes = {
 // 异步
 var promise = new Promise((resolve, reject) => {
     setTimeout(() => {
-        resolve([1, 2, 'A']);
+        resolve([1, 3]);
     }, 3000);
 });
 
 // React.cloneElement(el, { key: index, style: { color: 'red' } });
 
 render(
-    <PermissionContext.Provider>
-        <Test3 />
+    <PermissionContext.Provider value={{ hasPermission: [1, 2] }}>
+        <Permission >
+            <div permission="1">
+                1
+                <h1 permission="2">2</h1>
+                <h1 permission="3">3</h1>
+            </div>
+        </Permission>
+        <Permission hasPermission={promise}>
+            <div permission="1">
+                1
+                <h1 permission="2">2</h1>
+                <h1 permission="3">3</h1>
+            </div>
+        </Permission>
+        <Test1 />
     </PermissionContext.Provider>,
     document.getElementById('app')
 );
