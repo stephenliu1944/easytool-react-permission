@@ -25,7 +25,7 @@ export default function(filename = 'index.js') {
         output: {
             file: `${BUILD_PATH}/${filename}`
         },
-        external: !DEV && ['react', 'react-dom'],      // 打包时排除外部依赖包
+        external: !DEV && ['react', 'react-dom', 'prop-types'],      // 打包时排除外部依赖包
         /**
          * 注意: 插件配置的顺序会影响代码的编译执行!
          */

@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 
 var Column = Table.Column;
 
-class Test1 extends Component {
+class CC extends Component {
 
     state = {
         data: [],
@@ -64,51 +64,10 @@ class Test1 extends Component {
             </Permission>
         );
     }
-} 
-class Test2 extends Component {
-    
-    state =  {
-        data: []
-    }
+}
 
-    componentDidMount() {
-        this.state.time = setTimeout(() => {
-            this.setState({
-                data: ['A', 'B', 'C']
-            });
-        }, 5000);
-    }
-
-    componentWillUnmount() {
-        clearTimeout(this.state.time);
-    }
-
-    renderDate(data = []) {
-        return data.map((data, index) => {
-            return (<div key={index} permission={data}>
-                <a href="#">{data}</a>
-            </div>);
-        });
-    }
-    
-    render() {
-        return (
-            <div>
-                SubComponent1
-                <h1 data-permission={[1, 2, 3]}>SubComponent1.h1</h1>
-                <p>
-                    SubComponent1.p1
-                    <span>SubComponent1.disable: {this.props.disable ? 'DISABLE' : 'ENABLE' }</span>    
-                </p>
-                { this.renderDate(this.state.data) }
-            </div>
-        );
-    }
-} 
-
-function Test3(props) {
+function FC(props) {
     var { value1 } = Object.assign({}, useContext(PermissionContext), props);
-    console.log(value1);
     
     return (
         <div permission="1">
@@ -117,18 +76,6 @@ function Test3(props) {
     );
 }
 
-Test3.propTypes = {
-    value1: PropTypes.object
-};
-
-// todo: test Hooks
-
-/**
- * 设置权限
- */
-// 同步
-// permission.setGlobalPermissions([1, 2, 3]);
-
 // 异步
 var promise = new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -136,25 +83,16 @@ var promise = new Promise((resolve, reject) => {
     }, 3000);
 });
 
-// React.cloneElement(el, { key: index, style: { color: 'red' } });
-
 render(
-    <PermissionContext.Provider value={{ hasPermission: [1, 2] }}>
-        {/* <Permission >
-            <div permission="1">
-                1
-                <h1 permission="2">2</h1>
-                <h1 permission="3">3</h1>
-            </div>
-        </Permission> */}
-        <Permission hasPermission={promise}>
-            <div permission="1">
-                1
-                <h1 permission="2">2</h1>
-                <h1 permission="3">3</h1>
-            </div>
+    <PermissionContext.Provider value={{ hasPermission: promise, onDeny: (el) => <h3>Permission denied</h3> }}>
+        <Permission >
+            <div permission="1">1</div>
+            <div permission="11" deny={(el) => alert(el.props.permission)}>11</div>
         </Permission>
-        {/* <Test1 /> */}
+        <Permission hasPermission={[2]}>
+            <div permission="2">2</div>
+            <CC permission="21" onDeny={(el) => alert(el.props.permission)} />
+        </Permission>
     </PermissionContext.Provider>,
     document.getElementById('app')
 );

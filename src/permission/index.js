@@ -7,13 +7,13 @@ import { PermissionContext } from '../context';
 
 // 生成一个key
 function generateKey(element, index = 0) {
-    var key = '';
+    // var key = '';
 
-    if (isReactDOMElement(element)) {
-        key = element.type;
-    } else if (isReactComponentElement(element)) {
-        key = element.type.name;
-    }
+    // if (isReactDOMElement(element)) {
+    //     key = element.type;
+    // } else if (isReactComponentElement(element)) {
+    //     key = element.type.name;
+    // }
     // TODO: key有点多余, 先这样吧
     return `permission__${index}`;
 }
@@ -45,7 +45,6 @@ function filterElement(element, hasPermission, props, index = 0) {
     if (isReactDOMElement(element) 
             || isReactComponentElement(element)
             || isReactClass(element)) {
-        // TODO: 返回缺失的权限数组
         if (checkElementPermission(element, hasPermission, props)) {
             let { children } = element.props;
             
@@ -65,7 +64,8 @@ function filterElement(element, hasPermission, props, index = 0) {
             return newElement;
         } 
         
-        return handleDeny(element, hasPermission, props);
+        let onDeny = getPropertyByNames(element, ['onDeny', 'deny']);
+        return handleDeny(element, hasPermission, onDeny || props.onDeny);
     // 处理 Array
     } else if (isArray(element)
             || isReactFragment(element)
@@ -88,7 +88,7 @@ function filterElement(element, hasPermission, props, index = 0) {
 
 function checkElementPermission(element, hasPermission, props) {
     var { comparePermission } = props;
-    var elementPermission = getElementPermission(element);
+    var elementPermission = getPropertyByNames(element, ['permission', 'permissions', 'data-permission', 'data-permissions']);
 
     // 元素需要的权限, 空的表示不需要权限
     if (isEmpty(elementPermission)) {
@@ -105,9 +105,14 @@ function checkElementPermission(element, hasPermission, props) {
     return comparePermission(elementPermission, hasPermission);
 }
 
-function getElementPermission(element = {}) {
-    // BUG: permission 为 0 的时候有问题
-    return element.props['data-permission'] || element.props['data-permissions'] || element.props['permission'] || element.props['permissions'];
+function getPropertyByNames(element = {}, names = []) {
+    for (let i = 0; i < names.length; i++) {
+        let attribute = element.props[names[i]];
+        if (attribute || attribute === 0) {
+            return attribute;
+        }
+    }
+    return null;
 }
 
 function handleChildren(newChildren, oldChildren) {
@@ -123,10 +128,8 @@ function handleChildren(newChildren, oldChildren) {
     return newChildren;
 }
 
-// TODO: index 默认值为0可能有问题
-function handleDeny(element, hasPermission, props) {
-    var { onDeny } = props;
-    // 用户权限还未加载完成, 默认隐藏所有元素不显示, 不执行 onDenied 方法
+function handleDeny(element, hasPermission, onDeny) {
+    // 如果用户权限还未加载完成, 默认隐藏所有元素不显示, 不执行 onDenied 方法
     if (!onDeny || !hasPermission) {
         return null;
     }
@@ -173,6 +176,7 @@ Permission.propTypes = {
         PropTypes.func,
         PropTypes.object
     ]),
+    comparePermission: PropTypes.func,
     onDeny: PropTypes.func,
-    comparePermission: PropTypes.func
+    onError: PropTypes.func
 };

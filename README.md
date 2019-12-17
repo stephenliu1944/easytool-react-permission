@@ -1,5 +1,5 @@
 # @easytool/react-permission
-Easy to control react component permissions.
+Easy to handle react component permissions.
 
 ## Install
 ```
@@ -8,288 +8,133 @@ npm install -S @easytool/react-permission
 
 ## Usage
 ```jsx
-import permission from '@easytool/react-permission';
-// 1. Set user's permissions.
-permission.setGlobalPermissions(['a', 'b', 'c']);
-
-// 2. Add annotation on Component.
-@permission()
-class MyComponent extends Component {
-
-    render() {
-        return (
-            <div>
-                {/* set dom element permission */}
-                <div data-permission="a">MyComponent</div>
-                {/* set component element permissions */}
-                <SubComponent permission={['b', 'c']} />
-            </div>
-        );
-    }
-}
-```
-
-### Set User's permissions.  
-#### setGlobalPermissions()  
-Sync to set User's permissions, method receive number, string or array args.
-```js
-import permission from '@easytool/react-permission';
-// number
-permission.setGlobalPermissions(1);
-// or string
-permission.setGlobalPermissions('1');
-// or string with dot
-permission.setGlobalPermissions('1, 2, 3');
-// or array
-permission.setGlobalPermissions(['a', 'b', 'c']);
-```
-
-#### setGlobalPermissionsPromise()  
-Async to set User's permissions. method receive a Promise instance.
-```js
-import permission from '@easytool/react-permission';
-// or even promise
-var promise = new Promise((resolve, reject) => {
-    setTimeout(() => {
-        resolve(['a', 'b', 'c']);
-        // or
-        reject('error');
-    }, 5000);
-});
-permission.setGlobalPermissionsPromise(promise);
-```
-
-### Get User's permissions.  
-#### getGlobalPermissions()  
-Sync to get userPermissions data.
-```js
-var userPermissions = permission.getGlobalPermissions();
-```
-
-#### getGlobalPermissionsPromise()  
-Async to get userPermissions data. If you use setGlobalPermissionsPromise() method to set user's permissions, you better to use this method to get userPermissions data.
-```js
-permission.getGlobalPermissionsPromise().then(userPermissions => {
-    console.log(userPermissions);
-});
-```
-
-### Set Element's permissions.
-It means User need to have these permissions which is elements set, then them will activate in this Component.
-```jsx
-import permission from '@easytool/react-permission';
-
-@permission()
-class MyComponent extends Component {
-
-    render() {
-        return (
-            <div>
-                {/* use "data-permission" attribute for dom element */}
-                <div data-permission="1">
-                    <h1>MyComponent</h1>
-                    <p data-permission="2,3">
-                        p1
-                        <span>span1</span>
-                    </p>
-                </div>
-                {/* use "permission" attribute for component element */}
-                <SubComponent1 permission={1} />
-                <SubComponent2 permission="2" />
-                <SubComponent3 permission="3,4,5">
-                    <SubComponent4 permission={[6, 7, 8]} />
-                    <SubComponent5 permission={['a', 'b', 'c']} />
-                </SubComponent3>
-            </div>
-        );
-    }
-}
-```
-
-### Set Component's permissions.
-It means User need to have these permissions to use this Components.
-```jsx
-import permission from '@easytool/react-permission';
-
-@permission([1,2,3])
-class MyComponent extends Component {
-
-    render() {
-        return (
-            <div>
-                .....
-            </div>
-        );
-    }
-}
-```
-
-Component's permissions with denied callback.
-```jsx
-@permission([1,2,3], (requiredPermission, element, index) => {
-    // handle denied
-})
-class MyComponent extends Component {
-    ...
-}
-```
-
-### Function Component.
-withPermission method is use for Function Component.  
-Set Function Component's children permissions.
-```jsx
-import { setGlobalPermissions, withPermission } from '@easytool/react-permission';
-
-setGlobalPermissions('1, 2, 3');
-
-var Permission = withPermission((props) => {
-    return (
-        <p>
-            <a permission="1" href="#">Hello 1 </a>
-            <a permission="2" href="#">Hello 2 </a>
-        </p>
-    );
-});
+import Permission from '@easytool/react-permission';
+import React from 'react';
+import { render } from 'react-dom';
 
 render(
-    <Permission />,
+    <Permission hasPermission={[1, 2, 3]}>
+        <div permission="1">1</div>
+        <div permission="1, 2">1, 2</div>
+        <div permission={[2, 3]}>2, 3</div>
+        <MyComponent permission="1, 2, 3">1, 2, 3</MyComponent>
+    </Permission>,
     document.getElementById('app')
 );
 ```
 
-Set Function Component's permission.
+### Lazy loading
 ```jsx
-var Permission = withPermission((props) => {
-    return (
-        <p>
-            <a permission="1" href="#">Hello 1 </a>
-            <a permission="2" href="#">Hello 2 </a>
-        </p>
-    );
-}, [1, 2, 3]);
+var promise = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        resolve([1, 2, 3]);
+    }, 3000);
+});
+
+render(
+    <Permission hasPermission={promise}>
+        <div permission="1">1</div>
+        <div permission="1, 2">1, 2</div>
+        <div permission={[2, 3]}>2, 3</div>
+    </Permission>,
+    document.getElementById('app')
+);
 ```
 
-Function Component with denied callback.
+### onDeny
+Replace denied element.
 ```jsx
-var Permission = withPermission((props) => {
-    return (
-        <p>
-            <a permission="1" href="#">Hello 1 </a>
-            <a permission="2" href="#">Hello 2 </a>
-        </p>
-    );
-}, (requiredPermission, element, index) => {
-    // handle denied
-});
-// or
-var Permission = withPermission((props) => {
-    return (
-        <p>
-            <a permission="1" href="#">Hello 1 </a>
-            <a permission="2" href="#">Hello 2 </a>
-        </p>
-    );
-}, [1, 2, 3], (requiredPermission, element, index) => {
-    // handle denied
-});
+render(
+    <Permission hasPermission={[1]} onDeny={(deniedElement) => <h3>Permission denied</h3>}>
+        <div permission="1">1</div>
+        <MyComponent permission="2">2</MyComponent>
+    </Permission>,
+    document.getElementById('app')
+);
 ```
 
-### Handle denied.
+Change denied element.
 ```jsx
-import permission, { setGlobalPermissions } from '@easytool/react-permission';
-
-setGlobalPermissions('3');
-
-@permission((requiredPermission, deniedElement, index) => {
-    if (requiredPermission === 1) {
-        // use a valid element replace the denied element.
-        return <h1>Permissions Denied</h1>;
-    } else if (requiredPermission === 2) {
-        // rewrite deniedElement
-        return React.cloneElement(deniedElement, {
-            key: deniedElement.key || index,
-            style: { color: 'red' }
-        });
-    }
-})
-class MyComponent extends Component {
-
-    render() {
-        return (
-            <div>
-                <p data-permissions="1">Hello</p>
-                <p data-permissions="2">World</p>
-            </div>
-        );
-    }
-}
+render(
+    <Permission hasPermission={[1]} onDeny={(deniedElement) => React.cloneElement(deniedElement, { style: { color: 'red' } })}>
+        <div permission="1">1</div>
+        <MyComponent permission="2">2</MyComponent>
+    </Permission>,
+    document.getElementById('app')
+);
 ```
 
-### Set Default options.
+Handle deny to specific element.
 ```jsx
-import permission from '@easytool/react-permission';
+render(
+    <Permission hasPermission={[1]}>
+        // DOM Elements can not use 'onxxx' custom attributes, so use 'deny' in place of it.
+        <div permission="1" deny={(el) => <h3>Permission denied</h3>}>1</div>
+        <MyComponent permission="2" onDeny={(el) => <h3>Permission denied</h3>}>2</MyComponent>
+    </Permission>,
+    document.getElementById('app')
+);
+```
 
-permission.settings({
-    transformData(data) {
-        return data.reverse();
-    },
-    onDenied(requiredPermission, deniedElement, index) {
-        ...
-    },
-    comparePermission(requiredPermissions, userPermissions) {
-        ...
-        return true/false;
-    }
+### Use Context Provider
+Set global Permission.
+```jsx
+import Permission, { PermissionContext } from '@easytool/react-permission';
+
+render(
+    <PermissionContext.Provider value={{ hasPermission: [1, 2, 3] }}>
+        <Permission>
+            <div permission="1">1</div>
+            <div permission="2">2</div>
+        </Permission>
+        <Permission>
+            <div permission="3">3</div>
+            <MyComponent permission="4" />
+        </Permission>
+    </PermissionContext.Provider>,
+    document.getElementById('app')
+);
+```
+
+Lazy loading also works.
+```jsx
+import Permission, { PermissionContext } from '@easytool/react-permission';
+
+var promise = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        resolve([1, 2, 3]);
+    }, 3000);
 });
+
+render(
+    <PermissionContext.Provider value={{ hasPermission: promise, onDeny: (el) => <h3>Permission denied</h3> }}>
+        <Permission>
+            <div permission="1">1</div>
+            <div permission="2">2</div>
+        </Permission>
+        <Permission>
+            <div permission="3">3</div>
+            <MyComponent permission="4" />
+        </Permission>
+    </PermissionContext.Provider>,
+    document.getElementById('app')
+);
 ```
 
 ## API
-```js
-/**
- * @desc enable permission feature for Class Component.
- * @param { number | string | array } permissions set required permissions of component.
- * @param { function } onDenied when permission denied occur(under the Component Class), this method will be invoked everytime, function receive required permission, denied element and element index in parent children, return a replace element or nothing.
- */
-permission(permissions, onDenied)
+### Permission
+Param|Type|Description
+-|-|-
+hasPermission|string\|number\|array\|promise|set user's permission.
+comparePermission|function|custom compare function, receive(elementPermission, hasPermission). return true means authorized, false means denied.
+onDeny|function|when permission denied occur(under the Component Class), this method will be invoked everytime, function receive required permission, denied element and element index in parent children, return a replace element or nothing.
+onError|function|when hasPermission is promise and throw error, it will be invoked.
 
-/**
- * @desc set global permissions for user.
- * @param { number | string | array } permissions set user's permissions.
- */
-permission.setGlobalPermissions(permissions)
-
-/**
- * @desc async to set global permissions for user.
- * @param { promise } promise a promise instance to async receive user's permissions.
- */
-permission.setGlobalPermissionsPromise(promise)
-
-/**
- * @desc sync to get user's permissions.
- * @return user's permissions.
- */
-permission.getGlobalPermissions(permissions)
-
-/**
- * @desc async to get user's permissions.
- * @return Promise instance that receive user's permissions.
- */
-permission.getGlobalPermissionsPromise()
-
-/**
- * @desc
- * @param { object } options set default options.
- * @param { function } options.comparePermission custom compare function, receive(requiredPermissions, userPermissions). return true means authorized, false means denied.
- * @param { function } options.onDenied custom global onDenied, recieve(requiredPermissions, deniedElement, index).
- * @param { function } options.transformData will transform setGlobalPermissions's data,, default null.
- */
-permission.settings(options)
-
-/**
- * @desc enable permission feature for Function Component.
- * @param { function } WrappedComponent Function Component.
- * @param { number | string | array } permissions set required permissions of Function Component.
- * @param { function } onDenied when permission denied occur(under the Function Component), this method will be invoked everytime, function receive required permission, denied element and element index in parent children, return a replace element or nothing.
- */
-withPermission(WrappedComponent, permissions, onDenied)
-```
+### PermissionContext.Provider
+#### value
+Param|Type|Description
+-|-|-
+hasPermission|string\|number\|array\|promise|as above.
+comparePermission|function|as above.
+onDeny|function|as above.
+onError|function|as above.

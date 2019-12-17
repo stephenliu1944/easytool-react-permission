@@ -1,7 +1,7 @@
 {
   "name": "@easytool/react-permission",
-  "version": "0.1.1",
-  "description": "Easy to control react component permissions.",
+  "version": "0.1.2",
+  "description": "Easy to handle react component permissions.",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "browser": "dist/index.umd.js",
@@ -20,8 +20,7 @@
     "permission",
     "react",
     "role",
-    "privilege",
-    "access"
+    "access control"
   ],
   "files": [
     "dist",
@@ -61,7 +60,6 @@
   "devDependencies": {
     "@babel/core": "^7.0.1",
     "@babel/plugin-proposal-class-properties": "^7.1.0",
-    "@babel/plugin-proposal-decorators": "^7.3.0",
     "@babel/plugin-proposal-export-default-from": "^7.0.0",
     "@babel/plugin-proposal-export-namespace-from": "^7.2.0",
     "@babel/plugin-proposal-optional-chaining": "^7.0.0",
@@ -102,7 +100,7 @@
     "rollup-plugin-url": "^2.2.2"
   },
   "peerDependencies": {
-    "react": "^15.0.0 || ^16.0.0"
+    "react": "^16.8.0"
   },
   "devEnvironments": {
     "servers": {
