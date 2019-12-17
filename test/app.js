@@ -79,11 +79,45 @@ function FC(props) {
 // 异步
 var promise = new Promise((resolve, reject) => {
     setTimeout(() => {
-        resolve([1, 3]);
+        resolve([1, 2]);
     }, 3000);
 });
 
+var dataSource = [{
+    key: '1',
+    permission: 1,
+    name: 'Stephen'
+}, {
+    key: '2',
+    permission: 2,
+    name: 'Ricky'
+}, {
+    key: '3',
+    permission: 3,
+    name: 'Ray'
+}];
+
 render(
+    <PermissionContext.Provider value={{ hasPermission: promise }}>
+        <Table dataSource={dataSource}>
+            <Column
+                title="Name"
+                dataIndex="name"
+                key="name"
+                render={(text, record, index) => {
+                    return (
+                        <Permission onDeny={(el) => <span>Permission denied</span> }>
+                            <span permission={record.permission}>{text}</span>
+                        </Permission>
+                    );
+                }}
+            />
+        </Table>
+    </PermissionContext.Provider>,
+    document.getElementById('app')
+);
+
+/* render(
     <PermissionContext.Provider value={{ hasPermission: promise, onDeny: (el) => <h3>Permission denied</h3> }}>
         <Permission >
             <div permission="1">1</div>
@@ -95,4 +129,4 @@ render(
         </Permission>
     </PermissionContext.Provider>,
     document.getElementById('app')
-);
+); */

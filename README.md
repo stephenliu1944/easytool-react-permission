@@ -121,6 +121,46 @@ render(
 );
 ```
 
+### Work with AntD
+```jsx
+import { Table } from 'antd';
+import Permission, { PermissionContext } from '@easytool/react-permission';
+
+var dataSource = [{
+    key: '1',
+    permission: 1,
+    name: 'Stephen'
+}, {
+    key: '2',
+    permission: 2,
+    name: 'Ricky'
+}, {
+    key: '3',
+    permission: 3,
+    name: 'Ray'
+}];
+
+render(
+    <PermissionContext.Provider value={{ hasPermission: [1, 2] }}>
+        <Table dataSource={dataSource}>
+            <Column
+                title="Name"
+                dataIndex="name"
+                key="name"
+                render={(text, record, index) => {
+                    return (
+                        <Permission onDeny={(el) => <span>Permission denied</span> }>
+                            <span permission={record.permission}>{text}</span>
+                        </Permission>
+                    );
+                }}
+            />
+        </Table>
+    </PermissionContext.Provider>,
+    document.getElementById('app')
+);
+```
+
 ## API
 ### Permission
 Param|Type|Description
