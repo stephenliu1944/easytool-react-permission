@@ -19,6 +19,14 @@ function generateKey(element, index = 0) {
 }
 
 function comparePermission(elementPermission = [], hasPermission = []) {
+    if (elementPermission.length === 0) {
+        return true;
+    }
+    
+    if (elementPermission.length > hasPermission.length) {
+        return false;
+    }
+
     for (let i = 0; i < elementPermission.length; i++) {
         let requiredPermission = elementPermission[i];
 
@@ -100,9 +108,7 @@ function checkElementPermission(element, hasPermission, props) {
         return false;
     }
 
-    elementPermission = formatPermission(elementPermission);
-
-    return comparePermission(elementPermission, hasPermission);
+    return comparePermission(formatPermission(elementPermission), formatPermission(hasPermission));
 }
 
 function getPropertyByNames(element = {}, names = []) {
