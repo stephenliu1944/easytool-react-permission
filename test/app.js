@@ -1,4 +1,5 @@
 import React, { Component, useContext } from 'react';
+import { Router, Route, IndexRedirect, hashHistory } from 'react-router';
 import { render } from 'react-dom';
 import { Table } from 'antd';
 import Permission, { PermissionContext } from '../src/index';
@@ -66,13 +67,15 @@ class CC extends Component {
     }
 }
 
-function FC(props) {
-    var { value1 } = Object.assign({}, useContext(PermissionContext), props);
-    
+function FC2(props) {
     return (
-        <div permission="1">
-            <h1 permission="3">3</h1>
-        </div>
+        <h1>2</h1>
+    );
+}
+
+function FC3(props) {
+    return (
+        <h1>3</h1>
     );
 }
 
@@ -97,23 +100,41 @@ var dataSource = [{
     name: 'Ray'
 }];
 
-render(
-    <PermissionContext.Provider value={{ hasPermission: promise }}>
-        <Table dataSource={dataSource}>
-            <Column
-                title="Name"
-                dataIndex="name"
-                key="name"
-                render={(text, record, index) => {
-                    return (
-                        <Permission onDeny={(el) => <span>Permission denied</span> }>
-                            <span permission={record.permission}>{text}</span>
-                        </Permission>
-                    );
-                }}
-            />
-        </Table>
+/* render(
+    <PermissionContext.Provider value={{ hasPermission: null }}>
+        <Permission onLoad={<h1>Hello World</h1>}>
+            <Table dataSource={dataSource}>
+                <Column
+                    title="Name"
+                    dataIndex="name"
+                    key="name"
+                    render={(text, record, index) => {
+                        return (
+                            <Permission onDeny={<span>Permission denied</span>}>
+                                <span permission={record.permission}>{text}</span>
+                            </Permission>
+                        );
+                    }}
+                />
+            </Table>
+        </Permission>
     </PermissionContext.Provider>,
+    document.getElementById('app')
+); */
+
+function Deny() {
+    return <p>Permission denied</p>;
+}
+
+render(
+    <Permission hasPermission={[1, 2]} onDeny={(el, index) => React.cloneElement(el, { key: index, component: Deny })}>
+        <Router history={hashHistory} >
+            <Route path="/" permission="1">
+                <Route path="/home" component={FC2} permission="3"/>
+                <Route path="/detail" component={FC3} permission="2"/>
+            </Route>
+        </Router>
+    </Permission>,
     document.getElementById('app')
 );
 

@@ -71,9 +71,14 @@ function filterElement(element, hasPermission, props, index = 0) {
             // 返回权限过滤后的元素. 
             return newElement;
         } 
-        
+        // 如果用户权限还未加载完成, 默认隐藏所有元素不显示, 不执行 onDenied 方法
+        // isEmpty(permission) && isPromise(hasPermission) 表示当前用户权限为 pending 状态
+        if (isEmpty(hasPermission) && isPromise(props.hasPermission)) {
+            return null;
+        }
+
         let onDeny = getPropertyByNames(element, ['onDeny', 'deny']);
-        return handleDeny(element, hasPermission, onDeny || props.onDeny);
+        return handleDeny(element, onDeny || props.onDeny, index);
     // 处理 Array
     } else if (isArray(element)
             || isReactFragment(element)
@@ -134,44 +139,60 @@ function handleChildren(newChildren, oldChildren) {
     return newChildren;
 }
 
-function handleDeny(element, hasPermission, onDeny) {
-    // 如果用户权限还未加载完成, 默认隐藏所有元素不显示, 不执行 onDenied 方法
-    if (!onDeny || !hasPermission) {
+function handleDeny(element, onDeny, index) {
+    if (!onDeny) {
         return null;
     }
 
-    // TODO: 这里可能会有性能问题, 如果 onDenied 方法直接执行页面跳转, 可能来不及清除内存占用.
-    var newElement = onDeny(element);
+    if (React.isValidElement(onDeny)) {
+        return onDeny;
+    } else if (typeof onDeny === 'function') {
+        // TODO: 这里可能会有性能问题, 如果 onDenied 方法直接执行页面跳转, 可能来不及清除内存占用.
+        var newElement = onDeny(element, index);
 
-    if (newElement) {
-        if (React.isValidElement(newElement)) {        
-            return newElement;
+        // 有返回值
+        if (newElement) {
+            // 返回值类型必须是有效的React元素
+            if (React.isValidElement(newElement)) {
+                return newElement;
+            }
+            throw 'onDeny return a invalid react element.';
         }
-        throw 'onDeny return a invalid react element.';
     }
 
     return null;
 }    
 
-export default function Permission(props) {
-    const _props = Object.assign({
+function render(props, permission) {
+    var { children, hasPermission, onLoad } = props;
+    // isEmpty(permission) && isPromise(hasPermission) 表示当前用户权限为 pending 状态
+    if (isEmpty(permission) && isPromise(hasPermission) && React.isValidElement(onLoad)) {
+        return onLoad;
+    }
+
+    return filterElement(children, permission, props);
+}
+export default function Permission(_props) {
+    const props = Object.assign({
         hasPermission: null,
         comparePermission: comparePermission,
+        onLoad: null,
         onDeny: null,
         onError: null
-    }, useContext(PermissionContext), props);
+    }, useContext(PermissionContext), _props);
 
-    const [hasPermission, setHasPermission] = useState(isPromise(_props.hasPermission) ? null : _props.hasPermission);
+    // TODO: 增加状态 pending, fulfill 状态.
+    const [hasPermission, setHasPermission] = useState(isPromise(props.hasPermission) ? null : props.hasPermission);
     
     useEffect(() => {
-        if (isPromise(_props.hasPermission)) {
-            _props.hasPermission.then((permision) => setHasPermission(permision), _props.onError);
+        if (isPromise(props.hasPermission)) {
+            props.hasPermission.then(permision => setHasPermission(permision), props.onError);
         } else {
-            setHasPermission(_props.hasPermission);
+            setHasPermission(props.hasPermission);
         }
-    }, [_props.hasPermission]);
+    }, [props.hasPermission]);
 
-    return filterElement(_props.children, hasPermission, _props);
+    return render(props, hasPermission);
 }
 
 Permission.propTypes = {
@@ -183,6 +204,10 @@ Permission.propTypes = {
         PropTypes.object
     ]),
     comparePermission: PropTypes.func,
-    onDeny: PropTypes.func,
+    onLoad: PropTypes.object,
+    onDeny: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.object
+    ]),
     onError: PropTypes.func
 };

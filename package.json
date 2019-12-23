@@ -1,6 +1,6 @@
 {
   "name": "@easytool/react-permission",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Easy to handle react component permissions.",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
@@ -85,6 +85,7 @@
     "lodash": "^4.17.15",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
+    "react-router": "^3.2.5",
     "rollup": "^1.23.0",
     "rollup-plugin-alias": "^2.0.1",
     "rollup-plugin-babel": "^4.3.3",

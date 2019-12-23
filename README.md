@@ -13,11 +13,11 @@ import React from 'react';
 import { render } from 'react-dom';
 
 render(
-    <Permission hasPermission={[1, 2, 3]}>
+    <Permission hasPermission={[1, 2, 3, 4]}>
         <div permission="1">1</div>
         <div permission="1, 2">1, 2</div>
-        <div permission={[2, 3]}>2, 3</div>
-        <MyComponent permission="1, 2, 3">1, 2, 3</MyComponent>
+        <div permission={[1, 2, 3]}>1, 2, 3</div>
+        <MyComponent permission={4}>4</MyComponent>
     </Permission>,
     document.getElementById('app')
 );
@@ -34,18 +34,36 @@ var promise = new Promise((resolve, reject) => {
 render(
     <Permission hasPermission={promise}>
         <div permission="1">1</div>
-        <div permission="1, 2">1, 2</div>
-        <div permission={[2, 3]}>2, 3</div>
+        <div permission="2">2</div>
+        <div permission="3">3</div>
+    </Permission>,
+    document.getElementById('app')
+);
+```
+
+### onLoad
+```jsx
+var promise = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        resolve([1, 2, 3]);
+    }, 3000);
+});
+
+render(
+    <Permission hasPermission={promise} onLoad={<div>Loading...</div>}>
+        <div permission="1">1</div>
+        <div permission="2">2</div>
+        <div permission="3">3</div>
     </Permission>,
     document.getElementById('app')
 );
 ```
 
 ### onDeny
-Replace denied element.
+Change denied element.
 ```jsx
 render(
-    <Permission hasPermission={[1]} onDeny={(deniedElement) => <h3>Permission denied</h3>}>
+    <Permission hasPermission={[1]} onDeny={el => React.cloneElement(el, { style: { color: 'red' } })}>
         <div permission="1">1</div>
         <MyComponent permission="2">2</MyComponent>
     </Permission>,
@@ -53,10 +71,10 @@ render(
 );
 ```
 
-Change denied element.
+Replace denied element.
 ```jsx
 render(
-    <Permission hasPermission={[1]} onDeny={(deniedElement) => React.cloneElement(deniedElement, { style: { color: 'red' } })}>
+    <Permission hasPermission={[1]} onDeny={<h3>Permission denied</h3>}>
         <div permission="1">1</div>
         <MyComponent permission="2">2</MyComponent>
     </Permission>,
@@ -69,8 +87,8 @@ Handle deny to specific element.
 render(
     <Permission hasPermission={[1]}>
         // DOM Elements can not use 'onxxx' custom attributes, so use 'deny' in place of it.
-        <div permission="1" deny={(el) => <h3>Permission denied</h3>}>1</div>
-        <MyComponent permission="2" onDeny={(el) => <h3>Permission denied</h3>}>2</MyComponent>
+        <div permission="1" deny={<h3>Permission denied</h3>}>1</div>
+        <MyComponent permission="2" onDeny={<h3>Not Allow</h3>}>2</MyComponent>
     </Permission>,
     document.getElementById('app')
 );
@@ -107,7 +125,7 @@ var promise = new Promise((resolve, reject) => {
 });
 
 render(
-    <PermissionContext.Provider value={{ hasPermission: promise, onDeny: (el) => <h3>Permission denied</h3> }}>
+    <PermissionContext.Provider value={{ hasPermission: promise, onDeny: <h3>Permission denied</h3> }}>
         <Permission>
             <div permission="1">1</div>
             <div permission="2">2</div>
@@ -121,7 +139,26 @@ render(
 );
 ```
 
-### Work with AntD
+### Work with React Router
+```jsx
+function Deny() {
+    return <p>Permission denied</p>;
+}
+
+render(
+    <Permission hasPermission={[1, 2]} onDeny={(el, index) => React.cloneElement(el, { key: index, component: Deny })}>
+        <Router history={hashHistory} >
+            <Route path="/" permission="1">
+                <Route path="/home" component={FC2} permission="2" />
+                <Route path="/detail" component={FC3} permission="3" />
+            </Route>
+        </Router>
+    </Permission>,
+    document.getElementById('app')
+);
+```
+
+### Work with AntD Table
 ```jsx
 import { Table } from 'antd';
 import Permission, { PermissionContext } from '@easytool/react-permission';
@@ -149,7 +186,7 @@ render(
                 key="name"
                 render={(text, record, index) => {
                     return (
-                        <Permission onDeny={(el) => <span>Permission denied</span> }>
+                        <Permission onDeny={<span>Permission denied</span>}>
                             <span permission={record.permission}>{text}</span>
                         </Permission>
                     );
@@ -167,14 +204,17 @@ Param|Type|Description
 -|-|-
 hasPermission|string\|number\|array\|promise|set user's permission.
 comparePermission|function|custom compare function, receive(elementPermission, hasPermission). return true means authorized, false means denied.
-onDeny|function|when permission denied occur(under the Component Class), this method will be invoked everytime, function receive required permission, denied element and element index in parent children, return a replace element or nothing.
+onLoad|react element|when the hasPermission prop is promise type and state is pending then will use this element to render.
+onDeny|react element\|function|this method will be invoked when permission denied occur, function receive denied element and element index in parent children, return a replace element or nothing.
 onError|function|when hasPermission is promise and throw error, it will be invoked.
 
 ### PermissionContext.Provider
+You can specify Context Provider that will be applied to every \<Permission\>.
 #### value
 Param|Type|Description
 -|-|-
 hasPermission|string\|number\|array\|promise|as above.
 comparePermission|function|as above.
-onDeny|function|as above.
+onLoad|react element|as above.
+onDeny|react element\|function|as above.
 onError|function|as above.
