@@ -127,9 +127,10 @@ function Deny() {
 }
 
 render(
-    <Permission hasPermission={[1, 2]} onDeny={(el, index) => React.cloneElement(el, { key: index, component: Deny })}>
+    <Permission hasPermission={promise} onLoad={<h1>Loading...</h1>} onDeny={(el, index) => React.cloneElement(el, { key: index, component: Deny })}>
         <Router history={hashHistory} >
             <Route path="/" permission="1">
+                <IndexRedirect to="/detail" />
                 <Route path="/home" component={FC2} permission="3"/>
                 <Route path="/detail" component={FC3} permission="2"/>
             </Route>

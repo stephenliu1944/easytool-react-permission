@@ -149,8 +149,29 @@ render(
     <Permission hasPermission={[1, 2]} onDeny={(el, index) => React.cloneElement(el, { key: index, component: Deny })}>
         <Router history={hashHistory} >
             <Route path="/" permission="1">
-                <Route path="/home" component={FC2} permission="2" />
-                <Route path="/detail" component={FC3} permission="3" />
+                <Route path="/home" component={Home} permission="2" />
+                <Route path="/detail" component={Detail} permission="3" />
+            </Route>
+        </Router>
+    </Permission>,
+    document.getElementById('app')
+);
+```
+
+onLoad props is required when use Lazy loading.
+```jsx
+var promise = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        resolve([1, 2]);
+    }, 3000);
+});
+
+render(
+    <Permission hasPermission={promise} onLoad={<h1>Loading...</h1>}>
+        <Router history={hashHistory} >
+            <Route path="/" permission="1">
+                <Route path="/home" component={Home} permission="2" />
+                <Route path="/detail" component={Detail} permission="3" />
             </Route>
         </Router>
     </Permission>,
