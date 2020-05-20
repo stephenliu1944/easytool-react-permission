@@ -23,7 +23,7 @@ render(
 );
 ```
 
-### Lazy loading
+### Asynchronous setting permission
 ```jsx
 var promise = new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -114,7 +114,7 @@ render(
 );
 ```
 
-Lazy loading also works.
+Asynchronous setting permission.
 ```jsx
 import Permission, { PermissionContext } from '@easytool/react-permission';
 
@@ -135,6 +135,57 @@ render(
             <MyComponent permission="4" />
         </Permission>
     </PermissionContext.Provider>,
+    document.getElementById('app')
+);
+```
+
+Updating permission from a nested component.
+```jsx
+class Home extends React.Component {
+    static contextType = PermissionContext;
+
+    componentDidMount() {
+        setTimeout(() => {
+            this.context.togglePermission([1, 2, 3]);
+        }, 2000);
+    }
+
+    render() {
+        return (
+            <Permission>
+                <h1 permission="1">Home</h1>
+                <p permission="2">permission 2</p>
+                <p permission="3">permission 3</p>
+            </Permission>
+        );
+    }
+}
+
+class App extends Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            hasPermission: [1, 2],
+            togglePermission: (permissions) => {
+                this.setState({
+                    hasPermission: permissions
+                });
+            }
+        };
+    }
+
+    render() {
+        return (
+            <PermissionContext.Provider value={this.state}>
+                <Home />
+            </PermissionContext.Provider>
+        );
+    }
+}
+
+render(
+    <App />,
     document.getElementById('app')
 );
 ```

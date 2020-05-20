@@ -69,14 +69,18 @@ class CC extends Component {
 
 function FC2(props) {
     return (
-        <h1>2</h1>
+        <h1>Component 2</h1>
     );
 }
 
 function FC3(props) {
     return (
-        <h1>3</h1>
+        <h1>Component 3</h1>
     );
+}
+
+function Deny() {
+    return <p>Permission denied</p>;
 }
 
 // 异步
@@ -100,33 +104,10 @@ var dataSource = [{
     name: 'Ray'
 }];
 
+/**
+ * render
+ */
 /* render(
-    <PermissionContext.Provider value={{ hasPermission: null }}>
-        <Permission onLoad={<h1>Hello World</h1>}>
-            <Table dataSource={dataSource}>
-                <Column
-                    title="Name"
-                    dataIndex="name"
-                    key="name"
-                    render={(text, record, index) => {
-                        return (
-                            <Permission onDeny={<span>Permission denied</span>}>
-                                <span permission={record.permission}>{text}</span>
-                            </Permission>
-                        );
-                    }}
-                />
-            </Table>
-        </Permission>
-    </PermissionContext.Provider>,
-    document.getElementById('app')
-); */
-
-function Deny() {
-    return <p>Permission denied</p>;
-}
-
-render(
     <Permission hasPermission={promise} onLoad={<h1>Loading...</h1>} onDeny={(el, index) => React.cloneElement(el, { key: index, component: Deny })}>
         <Router history={hashHistory} >
             <Route path="/" permission="1">
@@ -136,6 +117,55 @@ render(
             </Route>
         </Router>
     </Permission>,
+    document.getElementById('app')
+); */
+
+// 动态更新权限
+class Home extends React.Component {
+    static contextType = PermissionContext;
+
+    componentDidMount() {
+        setTimeout(() => {
+            this.context.togglePermission([1, 2, 3]);
+        }, 2000);
+    }
+
+    render() {
+        return (
+            <Permission>
+                <h1 permission="1">Home</h1>
+                <p permission="2">permission 2</p>
+                <p permission="3">permission 3</p>
+            </Permission>
+        );
+    }
+}
+
+class App extends Component {
+    constructor(props) {
+        super(props);
+    
+        this.state = {
+            hasPermission: [1, 2],
+            togglePermission: (permissions) => {
+                this.setState({
+                    hasPermission: permissions
+                });
+            }
+        };
+    }
+    
+    render() {
+        return (
+            <PermissionContext.Provider value={this.state}>
+                <Home />
+            </PermissionContext.Provider>
+        );
+    }
+}
+
+render(
+    <App />,
     document.getElementById('app')
 );
 
