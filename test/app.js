@@ -1,5 +1,6 @@
 import React, { Component, useContext } from 'react';
-import { Router, Route, IndexRedirect, hashHistory } from 'react-router';
+// import { Router, Route, IndexRedirect, hashHistory } from 'react-router';
+import { Route, HashRouter, Switch } from 'react-router-dom';
 import { render } from 'react-dom';
 import { Table } from 'antd';
 import Permission, { PermissionContext } from '../src/index';
@@ -105,7 +106,7 @@ var dataSource = [{
 }];
 
 /**
- * render
+ * react-router@3
  */
 /* render(
     <Permission hasPermission={promise} onLoad={<h1>Loading...</h1>} onDeny={(el, index) => React.cloneElement(el, { key: index, component: Deny })}>
@@ -120,8 +121,80 @@ var dataSource = [{
     document.getElementById('app')
 ); */
 
-// 动态更新权限
-class Home extends React.Component {
+/**
+ * react-router@4
+ */
+class App extends Component {
+
+    state = {
+        hasPermission: []
+    }
+
+    componentDidMount() {
+        setTimeout(() => {
+            this.setState({
+                hasPermission: [1, 2]
+            });
+        }, 2000);
+    }
+
+    render(){
+        return (
+            <Permission hasPermission={this.state.hasPermission}>
+                <h1>APP</h1>
+                <Switch>
+                    <Route path="/home" component={Home} permission="1" />
+                    <Route path="/fc2" component={FC2} permission="2" />
+                </Switch>
+            </Permission>
+        );
+    }
+}
+
+function Home() {
+    return (
+        <h1>Home</h1>
+    );
+}
+
+function NoMatch() {
+    return (
+        <h1>NoMatch</h1>
+    );
+}
+
+class Root extends Component {
+    state = {
+        hasPermission: [1, 2]
+    }
+
+    componentDidMount() {
+        // setTimeout(() => {
+        //     console.log('------------');
+        //     this.setState({
+        //         hasPermission: [1, 2]
+        //     });
+        // }, 2000);
+    }
+
+    render() {
+        return (
+            // <PermissionContext.Provider value={this.state}>
+                <HashRouter>
+                    <Switch>
+                        <Route path="/" component={App} />
+                        <Route exact component={NoMatch} />
+                    </Switch>
+                </HashRouter>
+            // </PermissionContext>
+        );
+    }
+}
+
+/**
+ * 动态更新权限
+ */
+/* class Home extends React.Component {
     static contextType = PermissionContext;
 
     componentDidMount() {
@@ -141,7 +214,7 @@ class Home extends React.Component {
     }
 }
 
-class App extends Component {
+class Root extends Component {
     constructor(props) {
         super(props);
     
@@ -162,12 +235,7 @@ class App extends Component {
             </PermissionContext.Provider>
         );
     }
-}
-
-render(
-    <App />,
-    document.getElementById('app')
-);
+} */
 
 /* render(
     <PermissionContext.Provider value={{ hasPermission: promise, onDeny: (el) => <h3>Permission denied</h3> }}>
@@ -182,3 +250,8 @@ render(
     </PermissionContext.Provider>,
     document.getElementById('app')
 ); */
+
+render(
+    <Root />,
+    document.getElementById('app')
+);

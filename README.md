@@ -191,6 +191,7 @@ render(
 ```
 
 ### Work with React Router
+react-router@3
 ```jsx
 function Deny() {
     return <p>Permission denied</p>;
@@ -228,6 +229,48 @@ render(
     </Permission>,
     document.getElementById('app')
 );
+```
+
+react-router@4
+```jsx
+class Root extends Component {
+    state = {
+        hasPermission: null
+    }
+
+    componentDidMount() {
+        setTimeout(() => {
+            this.setState({
+                hasPermission: [1, 2]
+            });
+        }, 2000);
+    }
+
+    render() {
+        return (
+            <PermissionContext.Provider value={this.state}>
+                <HashRouter>
+                    <Switch>
+                        <Route path="/" component={App} />
+                        ...
+                    </Switch>
+                </HashRouter>
+            </PermissionContext>
+        );
+    }
+}
+
+function App() {
+    return (
+        <Permission>
+            <h1>APP</h1>
+            <Switch>
+                <Route path="/home" component={Home} permission="1" />
+                <Route path="/list" component={List} permission="2" />
+            </Switch>
+        </Permission>
+    );
+}
 ```
 
 ### Work with AntD Table
