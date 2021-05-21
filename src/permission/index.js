@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React, { Component, Children, useState, useEffect, useContext } from 'react';
 import { isEmpty, isArray, isPromise, trim } from 'utils/common';
-import { isReactDOMElement, isReactComponentElement, isReactClass, isReactFragment, isReactPortal } from 'utils/react';
+import { isReactDOMElement, isReactComponent, isReactForwardRef, isReactFragment, isReactPortal } from 'utils/react';
 import { formatPermission } from 'utils/format';
 import { PermissionContext } from '../context';
 
@@ -43,24 +43,24 @@ function comparePermission(elementPermission = [], hasPermission = []) {
     return true;
 }
 
-// 递归遍历 Virtual Tree
-function filterElement(element, hasPermission, props, index = 0) {
+// 递归遍历 Virtual Tree, 首次是 Permission.props.children, 然后根据用户自定义来
+function filterChildren(element, hasPermission, props, index = 0) {
     if (!element) {
         return;
     }
-    
-    // 处理 DOMElement, ComponentElement, ClassElement
+    // 处理 DOMElement, ComponentElement, ClassElement, ForwardRef
     if (isReactDOMElement(element) 
-            || isReactComponentElement(element)
-            || isReactClass(element)) {
+            || isReactComponent(element)
+            || isReactForwardRef(element)) {
         if (checkElementPermission(element, hasPermission, props)) {
+            // TODO: element没有子元素, 是通过props传递的.
             let { children } = element.props;
             
             if (Children.count(children) === 0) {
                 return element;
             }
             
-            let validChildren = filterElement(children, hasPermission, props, index);
+            let validChildren = filterChildren(children, hasPermission, props, index);
             let newChildren = handleChildren(validChildren, children);
             // cloneElement(element, props, children), 第二个, 第三个参数用于覆盖拷贝的 element 属性, 如果不输入默认使用原 element 的.
             // key and ref from the original element will be preserved.
@@ -82,20 +82,20 @@ function filterElement(element, hasPermission, props, index = 0) {
     // 处理 Array
     } else if (isArray(element)
             || isReactFragment(element)
-            || isReactPortal(element)) {        
+            || isReactPortal(element)) {
         let children = element?.props?.children || element.children || element;
         let validChildren = [];     // 有效的子元素
 
         // 这里筛选出有效的子元素
         Children.forEach(children, (child, _index) => {
             // checkedChild 已校验过的子元素
-            let checkedChild = filterElement(child, hasPermission, props, _index);
+            let checkedChild = filterChildren(child, hasPermission, props, _index);
             checkedChild && validChildren.push(checkedChild);
         });
 
         return validChildren;
     }
-    // 其他元素类型暂不处理
+    // TODO: 其他元素类型暴露方法让用户自己处理, 默认不处理
     return element;
 }
 
@@ -161,7 +161,7 @@ function handleDeny(element, onDeny, index) {
     }
 
     return null;
-}    
+}
 
 function render(props, permission) {
     var { children, hasPermission, onLoad } = props;
@@ -170,8 +170,9 @@ function render(props, permission) {
         return onLoad;
     }
 
-    return filterElement(children, permission, props);
+    return filterChildren(children, permission, props);
 }
+
 export default function Permission(_props) {
     const props = Object.assign({
         hasPermission: null,

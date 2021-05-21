@@ -57,7 +57,7 @@ export default function(filename = 'index.js') {
                 namedExports: DEV && {
                     'react-dom': ['render', 'createPortal', 'findDOMNode'],
                     'react': ['Component', 'Children', ' useState', 'useEffect', 'useContext'],
-                    'antd': ['Table', 'Column']
+                    'antd': ['Table', 'Column', 'Button']
                 }
             })
         ]

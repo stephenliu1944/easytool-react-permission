@@ -333,3 +333,9 @@ comparePermission|function|as above.
 onLoad|react element|as above.
 onDeny|react element\|function|as above.
 onError|function|as above.
+
+## TODO
+1. 用户自己选择查找的子元素, 默认是children
+2. 对比方法用户自定义
+3. 返回时添加装饰器
+4. filterChildren 增加用户自定义判断
