@@ -191,6 +191,60 @@ render(
 ```
 
 ### Work with React Router
+react-router@4-5
+```jsx
+import Permission, { PermissionContext } from '@easytool/react-permission';
+
+function Deny() {
+    return <p>Permission denied</p>;
+}
+
+let res, rej;
+const context = { 
+    hasPermission: new Promise((resolve, reject) => {
+        res = resolve;
+        rej = reject;
+    }),
+    onDeny: (el, index) => React.cloneElement(el, { component: Deny })
+};
+
+class App extends Component {
+    constructor(props) {
+        super(props);
+    }
+
+    componentDidMount() {
+        // request permission
+        setTimeout(() => {
+            res([1, 2]);
+        }, 2000);
+    }
+
+    render() {
+        return (
+            {/* using global setting */}
+            <PermissionContext.Provider value={context}>
+                <Permission>
+                    <HashRouter>
+                        <Switch>
+                            <Route path="/home" component={Home} permission="2" />
+                            {/* this route will be denied  */}
+                            <Route path="/list" component={List} permission="3" />                            
+                            <Route path="/" component={App} permission="1" />
+                        </Switch>
+                    </HashRouter>
+                </Permission>
+            </PermissionContext.Provider>
+        );
+    }
+}
+
+render(
+    <App />,
+    document.getElementById('app')
+);
+```
+
 react-router@3
 ```jsx
 function Deny() {
@@ -210,7 +264,7 @@ render(
 );
 ```
 
-onLoad props is required when use Lazy loading.
+onLoad props is required when use Promise for react-router@3.
 ```jsx
 var promise = new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -229,48 +283,6 @@ render(
     </Permission>,
     document.getElementById('app')
 );
-```
-
-react-router@4
-```jsx
-class Root extends Component {
-    state = {
-        hasPermission: null
-    }
-
-    componentDidMount() {
-        setTimeout(() => {
-            this.setState({
-                hasPermission: [1, 2]
-            });
-        }, 2000);
-    }
-
-    render() {
-        return (
-            <PermissionContext.Provider value={this.state}>
-                <HashRouter>
-                    <Switch>
-                        <Route path="/" component={App} />
-                        ...
-                    </Switch>
-                </HashRouter>
-            </PermissionContext>
-        );
-    }
-}
-
-function App() {
-    return (
-        <Permission>
-            <h1>APP</h1>
-            <Switch>
-                <Route path="/home" component={Home} permission="1" />
-                <Route path="/list" component={List} permission="2" />
-            </Switch>
-        </Permission>
-    );
-}
 ```
 
 ### Work with AntD Table

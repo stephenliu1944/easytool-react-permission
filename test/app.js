@@ -138,7 +138,7 @@ class App extends Component {
         }, 2000);
     }
 
-    render(){
+    render() {
         return (
             <Permission hasPermission={this.state.hasPermission}>
                 <h1>APP</h1>
@@ -180,12 +180,12 @@ class Root extends Component {
     render() {
         return (
             // <PermissionContext.Provider value={this.state}>
-                <HashRouter>
-                    <Switch>
-                        <Route path="/" component={App} />
-                        <Route exact component={NoMatch} />
-                    </Switch>
-                </HashRouter>
+            <HashRouter>
+                <Switch>
+                    <Route path="/" component={App} />
+                    <Route exact component={NoMatch} />
+                </Switch>
+            </HashRouter>
             // </PermissionContext>
         );
     }
@@ -251,7 +251,56 @@ class Root extends Component {
     document.getElementById('app')
 ); */
 
+/**
+ * 用于测试 react-router@4-5 的路由使用
+ */
+let res, rej;
+const context = { 
+    hasPermission: new Promise((resolve, reject) => {
+        res = resolve;
+        rej = reject;
+    }),
+    onDeny: (el, index) => React.cloneElement(el, { component: Deny })
+};
+class Root2 extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            name: 'aaa'
+        };
+    }
+
+    componentDidMount() {
+        setTimeout(() => {
+            res([1, 2]);
+            this.setState({
+                name: 'bbb'
+            });
+        }, 2000);
+    }
+
+    render() {
+        return (
+            <>
+                <h1>{this.state.name}</h1>
+                <PermissionContext.Provider value={context}>
+                    <Permission>
+                        <HashRouter>
+                        
+                            <Switch>
+                                <Route path="/home" component={Home} permission="2" />
+                                <Route path="/list" component={FC2} permission="3" />
+                                <Route path="/" component={App} permission="1" />
+                            </Switch>
+                        </HashRouter>
+                    </Permission>
+                </PermissionContext.Provider>
+            </>
+        );
+    }
+}
+
 render(
-    <Root />,
+    <Root2 />,
     document.getElementById('app')
 );

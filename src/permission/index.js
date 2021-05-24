@@ -146,16 +146,18 @@ function handleDeny(element, onDeny, index) {
 
     if (React.isValidElement(onDeny)) {
         return onDeny;
-    } else if (typeof onDeny === 'function') {
-        // TODO: 这里可能会有性能问题, 如果 onDenied 方法直接执行页面跳转, 可能来不及清除内存占用.
-        var newElement = onDeny(element, index);
+    } 
 
-        // 有返回值
+    if (typeof onDeny === 'function') {
+        // TODO: 这里可能会有性能问题, 如果 onDenied 方法直接执行页面跳转, 可能来不及清除内存占用.
+        let newElement = onDeny(element, index);
+
+        // 返回值类型必须是有效的React元素
+        if (React.isValidElement(newElement)) {
+            return newElement;
+        }
+        // 非 null, undefined, 0
         if (newElement) {
-            // 返回值类型必须是有效的React元素
-            if (React.isValidElement(newElement)) {
-                return newElement;
-            }
             throw 'onDeny return a invalid react element.';
         }
     }
@@ -170,7 +172,9 @@ function render(props, permission) {
         return onLoad;
     }
 
-    return filterChildren(children, permission, props);
+    let newChildren = filterChildren(children, permission, props);
+
+    return newChildren;
 }
 
 export default function Permission(_props) {
