@@ -1,2 +1,2 @@
 export { PermissionContext } from './context';
-export default from './permission';
+export default from './components/permission';

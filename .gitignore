@@ -8,3 +8,4 @@ bin/*.log
 *.iml
 *.project
 .DS_Store
+.vscode

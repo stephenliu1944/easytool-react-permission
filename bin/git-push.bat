@@ -1,1 +1,1 @@
-npm run git:push & pause
+npm run git-push & pause

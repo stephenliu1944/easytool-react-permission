@@ -54,23 +54,75 @@ if (typeof Symbol === 'function' && Symbol.for) {
     REACT_LEGACY_HIDDEN_TYPE = symbolFor('react.legacy_hidden');
 }
 
+export function isReactEmpty(node) {
+    return node === null || node === undefined || typeof node === 'boolean';
+}
+
+export function isReactText(node) {
+    return typeof node === 'string' || typeof node === 'number';
+}
+
+/* 
+    $$typeof: Symbol(react.portal)
+*/
+export function isReactPortal(node) {
+    return node?.$$typeof === REACT_PORTAL_TYPE;
+}
+
+/* 
+    $$typeof: Symbol(react.element)
+*/
 export function isReactElement(node) {
     return React.isValidElement(node) && node?.$$typeof === REACT_ELEMENT_TYPE;
 }
 
 /* 
     $$typeof: Symbol(react.element)
-    key: "1"
-    props: {onClick: ƒ, children: Array(2)}
-    ref: null
     type: "div"
-    _owner: FiberNode {tag: 1, key: null, elementType: ƒ, type: ƒ, stateNode: _class, …}
-    _store: {validated: false}
-    _self: null
-    _source: null
 */
 export function isReactDOMElement(node) {
-    return isReactElement(node) && typeof node?.type === 'string';
+    return isReactElement(node) && typeof node.type === 'string';
+}
+
+// fragment, suspense
+export function isReactWrapper(node) {
+    return isReactElement(node) && (typeof node.type === 'symbol' || typeof node.type === 'number');  // number 用于兼容IE
+}
+
+// memo, forward_ref, lazy
+export function isReactHOC(node) {    
+    return isReactElement(node) && typeof node.type === 'object';
+}
+
+// classComponent, functionComponent
+export function isReactComponent(node) {
+    return isReactElement(node) && typeof node.type === 'function';
+}
+
+/* 
+    $$typeof: Symbol(react.element)
+    key: "1"
+    props: {children: Array(3)}
+    ref: null
+    type: Symbol(react.fragment)
+    _owner: FiberNode {tag: 1, key: null, elementType: ƒ, type: ƒ, stateNode: _class, …}
+    _store: {validated: false}
+*/
+export function isReactFragment(node) {    
+    return isReactWrapper(node) && node.type === FRAGMENT_TYPE;
+}
+
+/* 
+    $$typeof: Symbol(react.element)
+    key: null
+    props: {fallback: {…}}
+    ref: null
+    type: Symbol(react.suspense)
+    _owner: FiberNode {tag: 1, key: null, stateNode: Root2, elementType: ƒ, type: ƒ, …}
+    _store: {validated: true}
+*/
+export function isReactSuspense(node) {    
+    return isReactWrapper(node) && node.type === REACT_SUSPENSE_TYPE;
 }
 
 /* 
@@ -81,11 +133,9 @@ export function isReactDOMElement(node) {
     type: ƒ MyComponent(props)
     _owner: FiberNode {tag: 1, key: null, elementType: ƒ, type: ƒ, stateNode: _class, …}
     _store: {validated: false}
-    _self: null
-    _source: null
 */
 export function isReactFunctionComponent(node) {
-    return isReactComponent(node) && !node?.type?.prototype?.isReactComponent;
+    return isReactComponent(node) && !node.type.prototype.isReactComponent;
 }
 
 /* 
@@ -110,30 +160,9 @@ export function isReactFunctionComponent(node) {
             replaceState: (...)
     _owner: FiberNode {tag: 1, key: null, elementType: ƒ, type: ƒ, stateNode: _class, …}
     _store: {validated: false}
-    _self: null
-    _source: null
 */
 export function isReactClassComponent(node) {
-    return isReactComponent(node) && !!node?.type?.prototype?.isReactComponent;
-}
-
-export function isReactComponent(node) {
-    return isReactElement(node) && typeof node?.type === 'function';
-}
-
-/* 
-    $$typeof: Symbol(react.element)
-    key: "1"
-    props: {children: Array(3)}
-    ref: null
-    type: Symbol(react.fragment)
-    _owner: FiberNode {tag: 1, key: null, elementType: ƒ, type: ƒ, stateNode: _class, …}
-    _store: {validated: false}
-    _self: null
-    _source: null 
-*/
-export function isReactFragment(node) {    
-    return isReactElement(node) && node?.type === FRAGMENT_TYPE;
+    return isReactComponent(node) && !!node.type.prototype.isReactComponent;
 }
 
 /*     
@@ -141,31 +170,53 @@ export function isReactFragment(node) {
     key: null
     props: {permission: "3", type: "primary", children: "Primary Button"}
     ref: null
-    type:
+    type: {
         $$typeof: Symbol(react.forward_ref)
         Group: ƒ ButtonGroup(props)
         displayName: "Button"
         render: ƒ InternalButton(props, ref)    
+    }
 */
 export function isReactForwardRef(node) {
-    return isReactElement(node) && node?.type?.$$typeof === REACT_FORWARD_REF_TYPE;
+    return isReactHOC(node) && node.type.$$typeof === REACT_FORWARD_REF_TYPE;
+}
+
+/*
+    $$typeof: Symbol(react.element)
+    key: null
+    props: {permission: "3"}
+    ref: null
+    type: {
+        $$typeof: Symbol(react.memo)
+        compare: null
+        type: ƒ (props)
+    }
+*/ 
+export function isReactMemo(node) {
+    return isReactHOC(node) && node.type.$$typeof === REACT_MEMO_TYPE;
 }
 
 /* 
-    $$typeof: Symbol(react.portal)
-    children: (3) [{…}, {…}, {…}]
-    containerInfo: div#app2
-    implementation: null
+    $$typeof: Symbol(react.element)
     key: null
+    props: {permission: "3", children: {…}}
+    ref: null
+    type: {
+        $$typeof: Symbol(react.lazy)
+        _ctor: ƒ ()
+        _result: null
+        _status: -1
+        defaultProps: (...)
+        propTypes: (...)
+        get defaultProps: ƒ ()
+        set defaultProps: ƒ (newDefaultProps)
+        get propTypes: ƒ ()
+        set propTypes: ƒ (newPropTypes)
+        __proto__: Object
+        _owner: FiberNode {tag: 1, key: null, stateNode: Root2, elementType: ƒ, type: ƒ, …}
+        _store: {validated: true} 
+    }
 */
-export function isReactPortal(node) {
-    return node?.$$typeof === REACT_PORTAL_TYPE;
-}
-
-export function isReactText(node) {
-    return typeof node === 'string' || typeof node === 'number';
-}
-
-export function isReactEmpty(node) {
-    return node === null || node === undefined || typeof node === 'boolean';
+export function isReactLazy(node) {
+    return isReactHOC(node) && node.type.$$typeof === REACT_LAZY_TYPE;
 }

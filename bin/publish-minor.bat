@@ -1,1 +1,1 @@
-npm run publish:minor & pause
+npm run publish-minor & pause

@@ -1,1 +1,1 @@
-npm run publish:prerelease & pause
+npm run publish-prerelease & pause

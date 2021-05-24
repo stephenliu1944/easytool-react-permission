@@ -1,1 +1,1 @@
-npm run publish:patch & pause
+npm run publish-patch & pause

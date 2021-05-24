@@ -1,1 +1,1 @@
-npm run lint:js & pause
+npm run lint-js & pause

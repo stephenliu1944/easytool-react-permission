@@ -1,4 +1,4 @@
-import { isArray, isString, isNumber } from 'utils/common';
+import { isArray, isString, isNumber } from 'Utils/common';
 
 export function formatPermission(value) {
     var permissions = [];

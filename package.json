@@ -1,11 +1,19 @@
 {
   "name": "@easytool/react-permission",
-  "version": "0.1.9",
-  "description": "Easy to handle react component permissions.",
+  "version": "0.1.10",
+  "description": "Easy to handle react component permission.",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "browser": "dist/index.umd.js",
-  "libraryName": "ReactPermission",
+  "parcel": {
+    "library": "ReactPermission",
+    "externals": ["react", "prop-types"],
+    "exports": "named",
+    "globals": {
+      "react": "React",
+      "prop-types": "PropTypes"
+    }
+  },
   "license": "MIT",
   "author": "Stephen Liu",
   "repository": {
@@ -28,19 +36,20 @@
     "README.md"
   ],
   "scripts": {
-    "build:dev": "cross-env NODE_ENV=development rollup -c rollup.config.dev.js",
-    "build:prod": "cross-env NODE_ENV=production rollup -c rollup.config.prod.js",
-    "start": "cross-env NODE_ENV=development rollup -c rollup.config.dev.js -w",
-    "lint:js": "eslint src/**/*.{js,jsx} -c .eslintrc.prod.json --fix",
+    "build": "cross-env NODE_ENV=development webpack --config webpack.config.dev.babel.js --progress --colors --display-error-details",
+    "link": "cross-env NODE_ENV=link webpack-dev-server --config webpack.config.dev.babel.js --progress --colors --display-error-details",
+    "start": "cross-env NODE_ENV=development webpack-dev-server --config webpack.config.dev.babel.js --progress --colors --display-error-details",
+    "mock": "mock-server ./mock/data --static ./mock/static --config ./mock/mock.config.js --watch",
+    "start-mock": "concurrently \"cross-env npm start\" \"npm run mock\"",
+    "lint-js": "eslint -c .eslintrc.prod.js src/ --ext .js,.jsx --fix",
     "test": "jest",
-    "package": "cross-env BUILD_PATH=dist npm run build:prod",
-    "package:watch": "cross-env BUILD_PATH=dist NODE_ENV=production rollup -w -c rollup.config.prod.js",
-    "publish:prerelease": "npm run package && gulp version-prerelease && npm publish --access=public",
-    "publish:patch": "npm run package && gulp version-patch && npm publish --access=public",
-    "publish:minor": "npm run package && gulp version-minor && npm publish --access=public",
-    "publish:major": "npm run package && gulp version-major && npm publish --access=public",
+    "package": "cross-env NODE_ENV=production rollup -c rollup.config.js",
+    "publish-prerelease": "npm run package && gulp version-prerelease && npm publish",
+    "publish-patch": "npm run package && gulp version-patch && npm publish",
+    "publish-minor": "npm run package && gulp version-minor && npm publish",
+    "publish-major": "npm run package && gulp version-major && npm publish",
     "unpublish": "npm unpublish -f",
-    "git:push": "gulp git-push"
+    "git-push": "gulp git-push"
   },
   "husky": {
     "hooks": {
@@ -49,35 +58,54 @@
   },
   "lint-staged": {
     "src/**/*.{js,jsx}": [
-      "eslint -c .eslintrc.prod.json --fix",
+      "eslint -c .eslintrc.prod.js --fix",
       "git add"
     ]
+  },
+  "peerDependencies": {
+    "react": "^16.8.0"
   },
   "dependencies": {
     "@babel/runtime": "^7.0.0",
     "prop-types": "^15.7.2"
   },
   "devDependencies": {
+    "@babel/cli": "^7.1.2",
     "@babel/core": "^7.0.1",
     "@babel/plugin-proposal-class-properties": "^7.1.0",
     "@babel/plugin-proposal-export-default-from": "^7.0.0",
     "@babel/plugin-proposal-export-namespace-from": "^7.2.0",
     "@babel/plugin-proposal-optional-chaining": "^7.0.0",
+    "@babel/plugin-proposal-pipeline-operator": "^7.7.7",
+    "@babel/plugin-syntax-dynamic-import": "^7.2.0",
     "@babel/plugin-transform-runtime": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
-    "@babel/preset-react": "^7.0.0",
+    "@babel/preset-react": "^7.13.13",
     "@babel/register": "^7.0.0",
+    "@easytool/define-config": "^0.1.1",
+    "@easytool/mock-server": "^0.2.1",
+    "@easytool/proxy-config": "^0.1.2",
+    "@rollup/plugin-babel": "^5.2.2",
+    "@rollup/plugin-commonjs": "^17.0.0",
+    "@rollup/plugin-eslint": "^8.0.0",
+    "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-node-resolve": "^11.0.0",
+    "@rollup/plugin-url": "^6.0.0",
     "antd": "^4.15.6",
     "babel-core": "^7.0.0-bridge.0",
-    "babel-eslint": "^9.0.0",
+    "babel-eslint": "10.0.1",
     "babel-jest": "^23.6.0",
-    "babel-plugin-module-resolver": "^3.1.1",
+    "babel-loader": "^8.0.6",
+    "babel-plugin-module-resolver": "^4.0.0",
+    "case-sensitive-paths-webpack-plugin": "^2.2.0",
+    "clean-webpack-plugin": "^3.0.0",
+    "concurrently": "^5.0.2",
     "cross-env": "^5.2.0",
     "eslint": "^6.5.0",
+    "eslint-loader": "^3.0.3",
     "gulp": "^4.0.0",
     "gulp-bump": "^3.1.1",
-    "gulp-sftp-up4": "^0.1.8",
-    "gulp-zip": "^4.2.0",
+    "html-webpack-plugin": "^4.3.0",
     "husky": "^1.2.0",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^23.6.0",
@@ -87,26 +115,24 @@
     "react-dom": "^16.8.6",
     "react-router": "^3.2.5",
     "react-router-dom": "^4.3.1",
-    "rollup": "^1.23.0",
-    "rollup-plugin-alias": "^2.0.1",
-    "rollup-plugin-babel": "^4.3.3",
-    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup": "^2.34.0",
     "rollup-plugin-delete": "^1.1.0",
-    "rollup-plugin-eslint": "^7.0.0",
-    "rollup-plugin-generate-html-template": "1.5.0",
-    "rollup-plugin-json": "^4.0.0",
-    "rollup-plugin-node-resolve": "^5.2.0",
-    "rollup-plugin-replace": "^2.2.0",
-    "rollup-plugin-serve": "^1.0.1",
-    "rollup-plugin-uglify": "^6.0.3",
-    "rollup-plugin-url": "^2.2.2"
-  },
-  "peerDependencies": {
-    "react": "^16.8.0"
+    "rollup-plugin-terser": "^7.0.0",
+    "style-loader": "^1.1.2",
+    "url-loader": "^3.0.0",
+    "webpack": "^4.41.5",
+    "webpack-bundle-analyzer": "^3.6.0",
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.10.1"
   },
   "devEnvironments": {
     "servers": {
-      "local": 8888
+      "local": 8888,
+      "mock": 3000
+    },
+    "proxies": {},
+    "globals": {
+      "__DEV__": true
     }
   }
 }

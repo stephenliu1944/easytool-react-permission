@@ -1,10 +1,8 @@
+import { Table } from 'antd';
 import React, { Component, useContext } from 'react';
-// import { Router, Route, IndexRedirect, hashHistory } from 'react-router';
 import { Route, HashRouter, Switch } from 'react-router-dom';
 import { render } from 'react-dom';
-import { Table } from 'antd';
 import Permission, { PermissionContext } from '../src/index';
-import PropTypes from 'prop-types';
 
 var Column = Table.Column;
 
@@ -251,6 +249,22 @@ class Root extends Component {
     document.getElementById('app')
 ); */
 
+const Memo = React.memo((props, ref) => (
+    <div>h1</div>
+));
+
+const ForwardRef = React.forwardRef((props, ref) => (
+    <button ref={ref} className="FancyButton">
+        {props.children}
+    </button>
+));
+
+const LazyComp = React.lazy(() => import('./components/LazyComponent'));
+
+// const React.Fragment = 
+// React.lazy
+// React.Suspense
+
 /**
  * 用于测试 react-router@4-5 的路由使用
  */
@@ -260,7 +274,9 @@ const context = {
         res = resolve;
         rej = reject;
     }),
-    onDeny: (el, index) => React.cloneElement(el, { component: Deny })
+    onDeny: (el, index) => {
+        return <h1>aaaa</h1>;
+    }
 };
 class Root2 extends Component {
     constructor(props) {
@@ -282,17 +298,12 @@ class Root2 extends Component {
     render() {
         return (
             <>
-                <h1>{this.state.name}</h1>
                 <PermissionContext.Provider value={context}>
                     <Permission>
-                        <HashRouter>
-                        
-                            <Switch>
-                                <Route path="/home" component={Home} permission="2" />
-                                <Route path="/list" component={FC2} permission="3" />
-                                <Route path="/" component={App} permission="1" />
-                            </Switch>
-                        </HashRouter>
+                        <React.Suspense fallback={<div>Loading...</div>}>
+                            <LazyComp permission="3" />
+                        </React.Suspense>
+                        {/* <MM1 permission="3"/> */}
                     </Permission>
                 </PermissionContext.Provider>
             </>

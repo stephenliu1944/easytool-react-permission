@@ -1,1 +1,1 @@
-npm link
+npm run link & pause

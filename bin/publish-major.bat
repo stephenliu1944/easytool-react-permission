@@ -1,1 +1,1 @@
-npm run publish:major & pause
+npm run publish-major & pause

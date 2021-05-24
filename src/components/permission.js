@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
-import React, { Component, Children, useState, useEffect, useContext } from 'react';
-import { isEmpty, isArray, isPromise, trim } from 'utils/common';
-import { isReactDOMElement, isReactComponent, isReactForwardRef, isReactFragment, isReactPortal } from 'utils/react';
-import { formatPermission } from 'utils/format';
+import React, { Children, useState, useEffect, useContext } from 'react';
+import { isEmpty, isArray, isPromise, trim } from 'Utils/common';
+import { isReactDOMElement, isReactComponent, isReactHOC, isReactWrapper, isReactPortal } from 'Utils/react';
+import { formatPermission } from 'Utils/format';
 import { PermissionContext } from '../context';
 
 // 生成一个key
@@ -51,7 +51,7 @@ function filterChildren(element, hasPermission, props, index = 0) {
     // 处理 DOMElement, ComponentElement, ClassElement, ForwardRef
     if (isReactDOMElement(element) 
             || isReactComponent(element)
-            || isReactForwardRef(element)) {
+            || isReactHOC(element)) {
         if (checkElementPermission(element, hasPermission, props)) {
             // TODO: element没有子元素, 是通过props传递的.
             let { children } = element.props;
@@ -81,7 +81,7 @@ function filterChildren(element, hasPermission, props, index = 0) {
         return handleDeny(element, onDeny || props.onDeny, index);
     // 处理 Array
     } else if (isArray(element)
-            || isReactFragment(element)
+            || isReactWrapper(element)
             || isReactPortal(element)) {
         let children = element?.props?.children || element.children || element;
         let validChildren = [];     // 有效的子元素
