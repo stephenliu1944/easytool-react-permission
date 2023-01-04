@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React, { Children, useState, useEffect, useContext } from 'react';
 import { isEmpty, isArray, isPromise, trim } from 'Utils/common';
-import { isReactDOMElement, isReactComponent, isReactHOC, isReactWrapper, isReactPortal } from 'Utils/react';
+import { isReactElement } from 'Utils/react';
 import { formatPermission } from 'Utils/format';
 import { PermissionContext } from '../context';
 
@@ -48,12 +48,14 @@ function filterChildren(element, hasPermission, props, index = 0) {
     if (!element) {
         return;
     }
-    // 处理 DOMElement, ComponentElement, ClassElement, ForwardRef
-    if (isReactDOMElement(element) 
-            || isReactComponent(element)
-            || isReactHOC(element)) {
+    // isReactDOMElement: DOMElement.
+    // isReactComponent: classComponent, functionComponent, portal.
+    // isReactWrapper: fragment, suspense.
+    // isReactHOC: memo, lazy, forward_ref.
+    // if (isReactDOMElement(element) || isReactComponent(element) || isReactWrapper(element) || isReactHOC(element)) {
+    if (isReactElement(element)) {
         if (checkElementPermission(element, hasPermission, props)) {
-            // TODO: element没有子元素, 是通过props传递的.
+            // TODO: element没有子元素, 说明是通过 props 传递的.
             let { children } = element.props;
             
             if (Children.count(children) === 0) {
@@ -71,37 +73,34 @@ function filterChildren(element, hasPermission, props, index = 0) {
             // 返回权限过滤后的元素. 
             return newElement;
         } 
-        // 如果用户权限还未加载完成, 默认隐藏所有元素不显示, 不执行 onDenied 方法
+        // 如果用户权限还未加载完成, 默认隐藏所有元素不显示, 不执行 onDeny 方法
         // isEmpty(permission) && isPromise(hasPermission) 表示当前用户权限为 pending 状态
         if (isEmpty(hasPermission) && isPromise(props.hasPermission)) {
             return null;
         }
 
-        let onDeny = getPropertyByNames(element, ['onDeny', 'deny']);
+        let onDeny = getPropertyValueByNames(element, ['onDeny', 'deny', 'data-ondeny', 'data-deny']);
         return handleDeny(element, onDeny || props.onDeny, index);
     // 处理 Array
-    } else if (isArray(element)
-            || isReactWrapper(element)
-            || isReactPortal(element)) {
-        let children = element?.props?.children || element.children || element;
+    } else if (isArray(element)) {
         let validChildren = [];     // 有效的子元素
 
         // 这里筛选出有效的子元素
-        Children.forEach(children, (child, _index) => {
+        Children.forEach(element, (child, _index) => {
             // checkedChild 已校验过的子元素
             let checkedChild = filterChildren(child, hasPermission, props, _index);
             checkedChild && validChildren.push(checkedChild);
         });
 
         return validChildren;
-    }
+    } 
     // TODO: 其他元素类型暴露方法让用户自己处理, 默认不处理
     return element;
 }
 
 function checkElementPermission(element, hasPermission, props) {
     var { comparePermission } = props;
-    var elementPermission = getPropertyByNames(element, ['permission', 'permissions', 'data-permission', 'data-permissions']);
+    var elementPermission = getPropertyValueByNames(element, ['permission', 'permissions', 'data-permission', 'data-permissions']);
 
     // 元素需要的权限, 空的表示不需要权限
     if (isEmpty(elementPermission)) {
@@ -116,11 +115,12 @@ function checkElementPermission(element, hasPermission, props) {
     return comparePermission(formatPermission(elementPermission), formatPermission(hasPermission));
 }
 
-function getPropertyByNames(element = {}, names = []) {
+function getPropertyValueByNames(element = {}, names = []) {
     for (let i = 0; i < names.length; i++) {
-        let attribute = element.props[names[i]];
-        if (attribute || attribute === 0) {
-            return attribute;
+        let value = element.props[names[i]];
+        // TODO: 方法优化
+        if (value || value === 0) {
+            return value;
         }
     }
     return null;
@@ -149,7 +149,7 @@ function handleDeny(element, onDeny, index) {
     } 
 
     if (typeof onDeny === 'function') {
-        // TODO: 这里可能会有性能问题, 如果 onDenied 方法直接执行页面跳转, 可能来不及清除内存占用.
+        // TODO: 这里可能会有性能问题, 如果 onDeny 方法直接执行页面跳转, 可能来不及清除内存占用.
         let newElement = onDeny(element, index);
 
         // 返回值类型必须是有效的React元素
@@ -171,9 +171,7 @@ function render(props, permission) {
     if (isEmpty(permission) && isPromise(hasPermission) && React.isValidElement(onLoad)) {
         return onLoad;
     }
-
     let newChildren = filterChildren(children, permission, props);
-
     return newChildren;
 }
 
@@ -191,7 +189,7 @@ export default function Permission(_props) {
     
     useEffect(() => {
         if (isPromise(props.hasPermission)) {
-            props.hasPermission.then(permision => setHasPermission(permision), props.onError);
+            props.hasPermission.then(permission => setHasPermission(permission), props.onError);
         } else {
             setHasPermission(props.hasPermission);
         }

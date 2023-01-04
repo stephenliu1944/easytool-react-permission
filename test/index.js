@@ -1,7 +1,7 @@
 import { Table } from 'antd';
 import React, { Component, useContext } from 'react';
 import { Route, HashRouter, Switch } from 'react-router-dom';
-import { render } from 'react-dom';
+import ReactDOM, { render } from 'react-dom';
 import Permission, { PermissionContext } from '../src/index';
 
 var Column = Table.Column;
@@ -249,21 +249,18 @@ class Root extends Component {
     document.getElementById('app')
 ); */
 
-const Memo = React.memo((props, ref) => (
-    <div>h1</div>
+// 不能直接用{Lazy}, 需要<Lazy>
+const Lazy = React.lazy(() => import('./components/LazyComponent'));
+// 不能直接用{Memo}, 需要<Memo>
+const Memo = React.memo((props) => (
+    <div>Memo</div>
 ));
-
+// 不能直接用{ForwardRef}, 需要<ForwardRef>
 const ForwardRef = React.forwardRef((props, ref) => (
-    <button ref={ref} className="FancyButton">
-        {props.children}
-    </button>
+    <button ref={ref} className="FancyButton">ForwardRef</button>
 ));
-
-const LazyComp = React.lazy(() => import('./components/LazyComponent'));
-
-// const React.Fragment = 
-// React.lazy
-// React.Suspense
+// 可以直接用ReactDOM.createPortal(<h1>Portal</h1>, document.querySelector('#modal'))
+const Portal = (props) => ReactDOM.createPortal(<h1>Portal</h1>, document.querySelector('#modal'));
 
 /**
  * 用于测试 react-router@4-5 的路由使用
@@ -275,23 +272,17 @@ const context = {
         rej = reject;
     }),
     onDeny: (el, index) => {
-        return <h1>aaaa</h1>;
+        return <h1 key={index}>Deny!!</h1>;
     }
 };
 class Root2 extends Component {
     constructor(props) {
         super(props);
-        this.state = {
-            name: 'aaa'
-        };
     }
 
     componentDidMount() {
         setTimeout(() => {
             res([1, 2]);
-            this.setState({
-                name: 'bbb'
-            });
         }, 2000);
     }
 
@@ -300,10 +291,13 @@ class Root2 extends Component {
             <>
                 <PermissionContext.Provider value={context}>
                     <Permission>
-                        <React.Suspense fallback={<div>Loading...</div>}>
-                            <LazyComp permission="3" />
+                        <React.Suspense fallback={<div>Loading...</div>} permission="2">
+                            <Lazy permission="3" />
                         </React.Suspense>
-                        {/* <MM1 permission="3"/> */}
+                        <Portal permission="2" />
+                        <Memo permission="2" />
+                        <ForwardRef permission="3" />
+                        <><h1>a</h1><h1>b</h1></>
                     </Permission>
                 </PermissionContext.Provider>
             </>

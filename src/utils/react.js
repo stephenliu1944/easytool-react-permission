@@ -8,7 +8,8 @@ import React from 'react';
 // Please consider also adding to 'react-devtools-shared/src/backend/ReactSymbols'
 // The Symbol used to tag the ReactElement-like types. If there is no native Symbol
 // nor polyfill, then a plain number is used for performance.
-// 兼容性处理
+
+// 老版本(兼容性处理)
 let REACT_ELEMENT_TYPE = 0xeac7;
 let REACT_PORTAL_TYPE = 0xeaca;
 let FRAGMENT_TYPE = 0xeacb;
@@ -29,7 +30,7 @@ let REACT_OPAQUE_ID_TYPE = 0xeae0;
 let REACT_DEBUG_TRACING_MODE_TYPE = 0xeae1;
 let REACT_OFFSCREEN_TYPE = 0xeae2;
 let REACT_LEGACY_HIDDEN_TYPE = 0xeae3;
-
+// 新版本
 if (typeof Symbol === 'function' && Symbol.for) {
     const symbolFor = Symbol.for;
     REACT_ELEMENT_TYPE = symbolFor('react.element');
@@ -63,13 +64,6 @@ export function isReactText(node) {
 }
 
 /* 
-    $$typeof: Symbol(react.portal)
-*/
-export function isReactPortal(node) {
-    return node?.$$typeof === REACT_PORTAL_TYPE;
-}
-
-/* 
     $$typeof: Symbol(react.element)
 */
 export function isReactElement(node) {
@@ -80,51 +74,39 @@ export function isReactElement(node) {
     $$typeof: Symbol(react.element)
     type: "div"
 */
+// domElement
 export function isReactDOMElement(node) {
     return isReactElement(node) && typeof node.type === 'string';
 }
 
-// fragment, suspense
-export function isReactWrapper(node) {
-    return isReactElement(node) && (typeof node.type === 'symbol' || typeof node.type === 'number');  // number 用于兼容IE
-}
-
-// memo, forward_ref, lazy
-export function isReactHOC(node) {    
-    return isReactElement(node) && typeof node.type === 'object';
-}
-
-// classComponent, functionComponent
+/* 
+    $$typeof: Symbol(react.element)
+    type: function(props)
+*/
+// classComponent, functionComponent, portal
 export function isReactComponent(node) {
     return isReactElement(node) && typeof node.type === 'function';
 }
 
 /* 
     $$typeof: Symbol(react.element)
-    key: "1"
-    props: {children: Array(3)}
-    ref: null
-    type: Symbol(react.fragment)
-    _owner: FiberNode {tag: 1, key: null, elementType: ƒ, type: ƒ, stateNode: _class, …}
-    _store: {validated: false}
+    type: symbol | number
 */
-export function isReactFragment(node) {    
-    return isReactWrapper(node) && node.type === FRAGMENT_TYPE;
+// fragment, suspense
+export function isReactWrapper(node) {
+    return isReactElement(node) && (typeof node.type === 'symbol' || typeof node.type === 'number');  // number 用于兼容IE
 }
 
 /* 
     $$typeof: Symbol(react.element)
-    key: null
-    props: {fallback: {…}}
-    ref: null
-    type: Symbol(react.suspense)
-    _owner: FiberNode {tag: 1, key: null, stateNode: Root2, elementType: ƒ, type: ƒ, …}
-    _store: {validated: true}
+    type: object
 */
-export function isReactSuspense(node) {    
-    return isReactWrapper(node) && node.type === REACT_SUSPENSE_TYPE;
+// memo, forward_ref, lazy, portal
+export function isReactHOC(node) {    
+    return isReactElement(node) && typeof node.type === 'object';
 }
 
+/* 自定义(Class 与 Function)组件2种 */
 /* 
     $$typeof: Symbol(react.element)
     key: "1"
@@ -135,7 +117,7 @@ export function isReactSuspense(node) {
     _store: {validated: false}
 */
 export function isReactFunctionComponent(node) {
-    return isReactComponent(node) && !node.type.prototype.isReactComponent;
+    return isReactComponent(node) && !node?.type?.prototype?.isReactComponent;
 }
 
 /* 
@@ -162,61 +144,93 @@ export function isReactFunctionComponent(node) {
     _store: {validated: false}
 */
 export function isReactClassComponent(node) {
-    return isReactComponent(node) && !!node.type.prototype.isReactComponent;
+    return isReactComponent(node) && !!node?.type?.prototype?.isReactComponent;
 }
 
-/*     
+/* React内置组件2种 */
+/* 
     $$typeof: Symbol(react.element)
-    key: null
-    props: {permission: "3", type: "primary", children: "Primary Button"}
+    key: "1"
+    props: {children: object | array}
     ref: null
-    type: {
-        $$typeof: Symbol(react.forward_ref)
-        Group: ƒ ButtonGroup(props)
-        displayName: "Button"
-        render: ƒ InternalButton(props, ref)    
-    }
+    type: Symbol(react.fragment)
+    _owner: FiberNode {tag: 1, key: null, elementType: ƒ, type: ƒ, stateNode: _class, …}
+    _store: {validated: false}
 */
-export function isReactForwardRef(node) {
-    return isReactHOC(node) && node.type.$$typeof === REACT_FORWARD_REF_TYPE;
-}
-
-/*
-    $$typeof: Symbol(react.element)
-    key: null
-    props: {permission: "3"}
-    ref: null
-    type: {
-        $$typeof: Symbol(react.memo)
-        compare: null
-        type: ƒ (props)
-    }
-*/ 
-export function isReactMemo(node) {
-    return isReactHOC(node) && node.type.$$typeof === REACT_MEMO_TYPE;
+export function isReactFragment(node) {    
+    return isReactWrapper(node) && node.type === FRAGMENT_TYPE;
 }
 
 /* 
     $$typeof: Symbol(react.element)
     key: null
-    props: {permission: "3", children: {…}}
+    props: {children: object | array, fallback: object}
     ref: null
+    type: Symbol(react.suspense)
+    _owner: FiberNode {tag: 1, key: null, stateNode: Root2, elementType: ƒ, type: ƒ, …}
+    _store: {validated: true}
+*/ 
+export function isReactSuspense(node) {    
+    return isReactWrapper(node) && node.type === REACT_SUSPENSE_TYPE;
+}
+
+/* React方法生成的组件4种 */
+/*  
+    $$typeof: Symbol(react.element)
+    type: {
+        $$typeof: Symbol(react.forward_ref)
+        render: ƒ (props, ref)
+        displayName: undefined
+        ...
+    }
+*/
+export function isReactForwardRef(node) {
+    return isReactHOC(node) && node?.type?.$$typeof === REACT_FORWARD_REF_TYPE;
+}
+
+/*
+    $$typeof: Symbol(react.element)
+    type: {
+        $$typeof: Symbol(react.memo)
+        compare: null
+        type: ƒ (props)
+        displayName: undefined
+        ...
+    }
+*/ 
+export function isReactMemo(node) {
+    return isReactHOC(node) && node?.type?.$$typeof === REACT_MEMO_TYPE;
+}
+
+/* 
+    $$typeof: Symbol(react.element)
     type: {
         $$typeof: Symbol(react.lazy)
+        // v16
         _ctor: ƒ ()
         _result: null
         _status: -1
-        defaultProps: (...)
-        propTypes: (...)
-        get defaultProps: ƒ ()
-        set defaultProps: ƒ (newDefaultProps)
-        get propTypes: ƒ ()
-        set propTypes: ƒ (newPropTypes)
-        __proto__: Object
-        _owner: FiberNode {tag: 1, key: null, stateNode: Root2, elementType: ƒ, type: ƒ, …}
-        _store: {validated: true} 
+        // v17
+        _init: ƒ lazyInitializer(payload)
+        _payload: {_status: 1, _result: ƒ}
+        ...
     }
 */
 export function isReactLazy(node) {
-    return isReactHOC(node) && node.type.$$typeof === REACT_LAZY_TYPE;
+    return isReactHOC(node) && node?.type?.$$typeof === REACT_LAZY_TYPE;
+}
+
+/*  
+    <Portal>封装后无法判断
+    $$typeof: Symbol(react.element)
+    type: ƒ Portal(props)
+
+    实际数据结构
+    $$typeof: Symbol(react.portal)
+    containerInfo: DOMElement
+    implementation: null
+    key: null
+*/
+export function isReactPortal(node) {
+    return node.$$typeof === REACT_PORTAL_TYPE;
 }
