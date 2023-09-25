@@ -46,7 +46,7 @@ function comparePermission(elementPermission = [], hasPermission = []) {
 // 递归遍历 Virtual Tree, 首次是 Permission.props.children, 然后根据用户自定义来
 function filterChildren(element, hasPermission, props, index = 0) {
     if (!element) {
-        return;
+        return null;
     }
     // isReactDOMElement: DOMElement.
     // isReactComponent: classComponent, functionComponent, portal.
